@@ -1,0 +1,30 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "cl dbg",
+            "command": "cl.exe",
+            "args": [
+                "/Zi",
+                "/EHsc",
+                "/Fe:${workspaceFolder}/Debug/${fileBasenameNoExtension}.exe",
+                "/Fd:${workspaceFolder}/Debug/",
+                "/Fo:${workspaceFolder}/Debug/",
+                "${file}"
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "cl rls",
+            "command": "cl.exe",
+            "args": [
+                "/EHsc",
+                "/Fe:${workspaceFolder}/Release/${fileBasenameNoExtension}.exe",
+                "/Fd:${workspaceFolder}/Release/",
+                "/Fo:${workspaceFolder}/Release/",
+                "${file}"
+            ]
+        }
+    ],
+    "version": "2.0.0"
+}
