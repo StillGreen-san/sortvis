@@ -33,16 +33,22 @@ public:
 	}
 };
 
-class DummyWindow : SubWindow
+class DummyWindow : public SubWindow
 {
 public:
 	DummyWindow(const int aWidth, const int aHeight)
 		: SubWindow(aWidth, aHeight)
 	{
 		for (int llX = 0; llX < aWidth; llX++)
+		{
 			SetPixel(llX, 0, WHITE);
+			SetPixel(llX, aHeight-1, WHITE);
+		}
 		for (int llY = 0; llY < aWidth; llY++)
-			SetPixel(llY, 0, WHITE);
+		{
+			SetPixel(0, llY, WHITE);
+			SetPixel(aWidth-1, llY, WHITE);
+		}
 	}
 
 	void Update() override
@@ -57,7 +63,7 @@ public:
 class OLC_SORT : public olc::PixelGameEngine
 {
 private:
-	
+	vector<unique_ptr<SubWindow>> subwindows;
 
 public:
 	OLC_SORT()
@@ -66,13 +72,35 @@ public:
 	}
 
 private:
-	
+	void DrawSubWindow(const int aIndex, const int aXOffset, const int aYOffset)
+	{
+		if(aIndex < 0 || aIndex >= subwindows.size()) return;
+
+		subwindows[aIndex]->Update();
+		auto lBuffer = subwindows[aIndex]->GetBuffer();
+		
+		auto lCurrent = lBuffer->begin();
+		auto lEnd = lBuffer->end();
+		int lX = 0;
+		int lY = 0;
+		int lWidth = subwindows[aIndex]->WindowWidth();
+
+		while (lCurrent != lEnd)
+		{
+			Draw(lX+aXOffset, lY+aXOffset, *lCurrent);
+
+			lCurrent++;
+			lX = (lX+1) % lWidth;
+			if(lX == 0) lY++;
+		}
+	}
 
 protected:
 	// Called by olcConsoleGameEngine
 	virtual bool OnUserCreate()
 	{
-
+		subwindows.push_back(
+			unique_ptr<SubWindow>(new DummyWindow{30,30}));
 
 		return true;
 	}
@@ -80,7 +108,7 @@ protected:
 	// Called by olcConsoleGameEngine
 	virtual bool OnUserUpdate(float fElapsedTime)
 	{
-		Draw(rand()%ScreenWidth(), rand()%ScreenHeight());
+		DrawSubWindow(0, 250, 165);
 
 		return true;
 	}
