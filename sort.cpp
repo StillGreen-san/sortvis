@@ -8,7 +8,6 @@ class Subwindow
 {
 private:
 	Sprite sprite;
-	int scale;
 
 protected:
 	bool SetPixel(int x, int y, const Pixel& pixel)
@@ -16,8 +15,8 @@ protected:
 		return sprite.SetPixel(x, y, pixel);
 	}
 
-	Subwindow(const int width, const int height, const int scale)
-		: sprite(width, height), scale(scale)
+	Subwindow(const int width, const int height)
+		: sprite(width, height)
 	{}
 
 public:
@@ -25,7 +24,6 @@ public:
 
 	int GetWidth() { return sprite.width; }
 	int GetHeight() { return sprite.height; }
-	int GetScale() { return scale; }
 
 	Sprite* GetSprite() { return &sprite; }
 };
@@ -36,8 +34,8 @@ private:
 	Pixel color;
 
 public:
-	DummyWindow(const int width, const int height, const int scale, const Pixel color)
-		: color{color}, Subwindow(width, height, scale)
+	DummyWindow(const int width, const int height, const Pixel color)
+		: color{color}, Subwindow(width, height)
 	{}
 
 	void Update() override
@@ -49,10 +47,18 @@ public:
 	}
 };
 
+struct SubwindowStorage
+{
+	int xoffset;
+	int yoffset;
+	int scale;
+	unique_ptr<Subwindow> subwindow;
+};
+
 class OLC_SORT : public olc::PixelGameEngine
 {
 private:
-	vector<unique_ptr<Subwindow>> subwindows;
+	vector<SubwindowStorage> subwindows;
 
 public:
 	OLC_SORT()
@@ -61,22 +67,48 @@ public:
 	}
 
 private:
-	void DrawSubWindow(const int index, const int xoffset, const int yoffset)
+	void DrawSubwindows()
 	{
-		if(index < 0 || index >= subwindows.size()) return;
+		for (auto& storage : subwindows)
+		{
+			storage.subwindow->Update();
+			DrawSprite(	storage.xoffset,
+						storage.yoffset,
+						storage.subwindow->GetSprite(),
+						storage.scale);
+		}
+	}
 
-		auto& subwin = subwindows[index];
-		subwin->Update();
+	void CreateSubwindows(const int rows, const int collumns, const int scale)
+	{
+		int rowoffset = ScreenHeight()/rows;
+		int collumnoffset = ScreenWidth()/collumns;
+		int width = collumnoffset/scale;
+		int height = rowoffset/scale;
 		
-		DrawSprite(xoffset, yoffset, subwin->GetSprite(), subwin->GetScale());
+		subwindows.reserve(rows*collumns);
+
+		for (int yoffset = 0; yoffset < rowoffset*rows; yoffset+=rowoffset)
+		{
+			for (int xoffset = 0; xoffset < collumnoffset*collumns; xoffset+=collumnoffset)
+			{
+				subwindows.push_back({
+					xoffset,
+					yoffset,
+					scale,
+					unique_ptr<Subwindow>(
+						new DummyWindow{width,height,
+							Pixel(rand()%255,rand()%255,rand()%255)})
+					});
+			}
+		}
 	}
 
 protected:
 	// Called by olcConsoleGameEngine
 	virtual bool OnUserCreate()
 	{
-		subwindows.push_back(
-			unique_ptr<Subwindow>(new DummyWindow{30,30,3,YELLOW}));
+		CreateSubwindows(3, 5, 9);
 
 		return true;
 	}
@@ -84,7 +116,7 @@ protected:
 	// Called by olcConsoleGameEngine
 	virtual bool OnUserUpdate(float fElapsedTime)
 	{
-		DrawSubWindow(0, 250, 165);
+		DrawSubwindows();
 
 		return true;
 	}
@@ -94,7 +126,7 @@ protected:
 int main()
 {
 	OLC_SORT game;
-	game.Construct(1600, 1000, 1, 1, false, true);
+	game.Construct(800, 500, 2, 2, false, true);
 	game.Start();
 
 	return 0;
