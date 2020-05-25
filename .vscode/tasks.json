@@ -19,6 +19,7 @@
             "command": "cl.exe",
             "args": [
                 "/EHsc",
+                "/O2",
                 "/Fe:${workspaceFolder}/Release/${fileBasenameNoExtension}.exe",
                 "/Fd:${workspaceFolder}/Release/",
                 "/Fo:${workspaceFolder}/Release/",

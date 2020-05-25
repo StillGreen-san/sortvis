@@ -84,13 +84,15 @@ private:
 		int rowoffset = ScreenHeight()/rows;
 		int collumnoffset = ScreenWidth()/collumns;
 		int width = collumnoffset/scale;
+		int w = (fmodf((float)collumnoffset/(float)scale,1.f)*scale)/2;
 		int height = (rowoffset-8)/scale;
+		int h = (fmodf((float)rowoffset/(float)scale,1.f)*scale)/2;
 		
 		subwindows.reserve(rows*collumns);
 
-		for (int yoffset = 8; yoffset < rowoffset*rows; yoffset+=rowoffset)
+		for (int yoffset = 8+h; yoffset < rowoffset*rows; yoffset+=rowoffset)
 		{
-			for (int xoffset = 0; xoffset < collumnoffset*collumns; xoffset+=collumnoffset)
+			for (int xoffset = 0+w; xoffset < collumnoffset*collumns; xoffset+=collumnoffset)
 			{
 				subwindows.push_back({
 					xoffset,
@@ -110,7 +112,7 @@ protected:
 	// Called by olcConsoleGameEngine
 	virtual bool OnUserCreate()
 	{
-		CreateSubwindows(3, 5, 9);
+		CreateSubwindows(3, 5, 4);
 
 		return true;
 	}
@@ -128,7 +130,7 @@ protected:
 int main()
 {
 	OLC_SORT game;
-	game.Construct(800, 500, 2, 2, false, true);
+	game.Construct(795, 500, 2, 2, false, true);
 	game.Start();
 
 	return 0;
