@@ -84,11 +84,11 @@ private:
 		int rowoffset = ScreenHeight()/rows;
 		int collumnoffset = ScreenWidth()/collumns;
 		int width = collumnoffset/scale;
-		int height = rowoffset/scale;
+		int height = (rowoffset-8)/scale;
 		
 		subwindows.reserve(rows*collumns);
 
-		for (int yoffset = 0; yoffset < rowoffset*rows; yoffset+=rowoffset)
+		for (int yoffset = 8; yoffset < rowoffset*rows; yoffset+=rowoffset)
 		{
 			for (int xoffset = 0; xoffset < collumnoffset*collumns; xoffset+=collumnoffset)
 			{
@@ -100,6 +100,8 @@ private:
 						new DummyWindow{width,height,
 							Pixel(rand()%255,rand()%255,rand()%255)})
 					});
+
+				DrawString(xoffset, yoffset-8,"X:"+to_string(xoffset)+" Y:"+to_string(yoffset),WHITE);
 			}
 		}
 	}
