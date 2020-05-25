@@ -4,66 +4,55 @@
 using namespace std;
 using namespace olc;
 
-class SubWindow
+class Subwindow
 {
 private:
-	vector<Pixel> mBuffer;
-	int mWidth, mHeight;
+	Sprite sprite;
+	int scale;
 
 protected:
-	void SetPixel(int aX, int aY, const Pixel& aP)
+	bool SetPixel(int x, int y, const Pixel& pixel)
 	{
-		if(aX >= mWidth || aY >= mHeight) return;
-		mBuffer[aY*mWidth+aX] = aP;
+		return sprite.SetPixel(x, y, pixel);
 	}
 
-	SubWindow(const int aWidth, const int aHeight)
-		: mWidth(aWidth), mHeight(aHeight), mBuffer(aWidth*aHeight, BLACK)
+	Subwindow(const int width, const int height, const int scale)
+		: sprite(width, height), scale(scale)
 	{}
 
 public:
 	virtual void Update() = 0;
 
-	int WindowWidth() { return mWidth; }
-	int WindowHeight() { return mHeight; }
+	int GetWidth() { return sprite.width; }
+	int GetHeight() { return sprite.height; }
+	int GetScale() { return scale; }
 
-	const vector<Pixel>* GetBuffer()
-	{
-		return &mBuffer;
-	}
+	Sprite* GetSprite() { return &sprite; }
 };
 
-class DummyWindow : public SubWindow
+class DummyWindow : public Subwindow
 {
+private:
+	Pixel color;
+
 public:
-	DummyWindow(const int aWidth, const int aHeight)
-		: SubWindow(aWidth, aHeight)
-	{
-		for (int llX = 0; llX < aWidth; llX++)
-		{
-			SetPixel(llX, 0, WHITE);
-			SetPixel(llX, aHeight-1, WHITE);
-		}
-		for (int llY = 0; llY < aWidth; llY++)
-		{
-			SetPixel(0, llY, WHITE);
-			SetPixel(aWidth-1, llY, WHITE);
-		}
-	}
+	DummyWindow(const int width, const int height, const int scale, const Pixel color)
+		: color{color}, Subwindow(width, height, scale)
+	{}
 
 	void Update() override
 	{
-		SetPixel(rand()%WindowWidth(),rand()%WindowHeight(),BLACK);
-		SetPixel(rand()%WindowWidth(),rand()%WindowHeight(),BLACK);
-		SetPixel(rand()%WindowWidth(),rand()%WindowHeight(),BLACK);
-		SetPixel(rand()%WindowWidth(),rand()%WindowHeight(),YELLOW);
+		SetPixel(rand()%GetWidth(),rand()%GetHeight(),BLACK);
+		SetPixel(rand()%GetWidth(),rand()%GetHeight(),BLACK);
+		SetPixel(rand()%GetWidth(),rand()%GetHeight(),BLACK);
+		SetPixel(rand()%GetWidth(),rand()%GetHeight(),color);
 	}
 };
 
 class OLC_SORT : public olc::PixelGameEngine
 {
 private:
-	vector<unique_ptr<SubWindow>> subwindows;
+	vector<unique_ptr<Subwindow>> subwindows;
 
 public:
 	OLC_SORT()
@@ -72,27 +61,14 @@ public:
 	}
 
 private:
-	void DrawSubWindow(const int aIndex, const int aXOffset, const int aYOffset)
+	void DrawSubWindow(const int index, const int xoffset, const int yoffset)
 	{
-		if(aIndex < 0 || aIndex >= subwindows.size()) return;
+		if(index < 0 || index >= subwindows.size()) return;
 
-		subwindows[aIndex]->Update();
-		auto lBuffer = subwindows[aIndex]->GetBuffer();
+		auto& subwin = subwindows[index];
+		subwin->Update();
 		
-		auto lCurrent = lBuffer->begin();
-		auto lEnd = lBuffer->end();
-		int lX = 0;
-		int lY = 0;
-		int lWidth = subwindows[aIndex]->WindowWidth();
-
-		while (lCurrent != lEnd)
-		{
-			Draw(lX+aXOffset, lY+aXOffset, *lCurrent);
-
-			lCurrent++;
-			lX = (lX+1) % lWidth;
-			if(lX == 0) lY++;
-		}
+		DrawSprite(xoffset, yoffset, subwin->GetSprite(), subwin->GetScale());
 	}
 
 protected:
@@ -100,7 +76,7 @@ protected:
 	virtual bool OnUserCreate()
 	{
 		subwindows.push_back(
-			unique_ptr<SubWindow>(new DummyWindow{30,30}));
+			unique_ptr<Subwindow>(new DummyWindow{30,30,3,YELLOW}));
 
 		return true;
 	}
