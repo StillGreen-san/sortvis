@@ -4,6 +4,11 @@
 using namespace std;
 using namespace olc;
 
+Pixel RandomPixel(const int mod = 255)
+{
+	return{uint8_t(rand()%mod),uint8_t(rand()%mod),uint8_t(rand()%mod)};
+}
+
 class Subwindow
 {
 private:
@@ -83,9 +88,9 @@ private:
 	{
 		int rowoffset = ScreenHeight()/rows;
 		int collumnoffset = ScreenWidth()/collumns;
-		int width = collumnoffset/scale;
+		int width = (collumnoffset-3)/scale;
 		int w = (fmodf((float)collumnoffset/(float)scale,1.f)*scale)/2;
-		int height = (rowoffset-8)/scale;
+		int height = (rowoffset-8-2)/scale;
 		int h = (fmodf((float)rowoffset/(float)scale,1.f)*scale)/2;
 		
 		subwindows.reserve(rows*collumns);
@@ -94,25 +99,42 @@ private:
 		{
 			for (int xoffset = 0+w; xoffset < collumnoffset*collumns; xoffset+=collumnoffset)
 			{
+				Pixel pixel = RandomPixel();
 				subwindows.push_back({
-					xoffset,
-					yoffset,
+					xoffset+2,
+					yoffset+1,
 					scale,
 					unique_ptr<Subwindow>(
-						new DummyWindow{width,height,
-							Pixel(rand()%255,rand()%255,rand()%255)})
+						new DummyWindow{width,height, pixel})
 					});
 
-				DrawString(xoffset, yoffset-8,"X:"+to_string(xoffset)+" Y:"+to_string(yoffset),WHITE);
+				DrawString(xoffset, yoffset-8," X:"+to_string(xoffset)+" Y:"+to_string(yoffset),WHITE);
+				DrawRect(xoffset+1, yoffset, (width*scale)+1, (height*scale)+1, pixel);
 			}
 		}
+	}
+
+	void SetText(const int subwindowindex, const string& text)
+	{
+		if(subwindowindex < 0 || subwindowindex >= subwindows.size()) return;
+
+		FillRect(subwindows[subwindowindex].xoffset-1,
+				subwindows[subwindowindex].yoffset-9,
+				(subwindows[subwindowindex].subwindow->GetWidth()*subwindows[subwindowindex].scale)+1,
+				8, BLACK);
+
+		DrawString(subwindows[subwindowindex].xoffset,
+					subwindows[subwindowindex].yoffset-9,
+					text, WHITE);
 	}
 
 protected:
 	// Called by olcConsoleGameEngine
 	virtual bool OnUserCreate()
 	{
-		CreateSubwindows(3, 5, 4);
+		CreateSubwindows(2, 3, 4);
+		SetText(0, "First Thingy");
+		SetText(5, "Sixth Thingy");
 
 		return true;
 	}
@@ -130,7 +152,7 @@ protected:
 int main()
 {
 	OLC_SORT game;
-	game.Construct(795, 500, 2, 2, false, true);
+	game.Construct(795, 503, 2, 2, false, true);
 	game.Start();
 
 	return 0;
