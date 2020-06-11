@@ -168,16 +168,31 @@ protected:
 	};
 
 private:
-	vector<int> values;
-	Pixel unsorted;
-	Pixel sorted;
-	Pixel compared;
+	Pixel unsortedColor;
+	Pixel sortedColor;
+	vector<bool> sortedIndices;
+	Pixel comparedColor;
+	vector<int> comparedIndices;
 	SortingState sortstate;
+	int counter = 0;
 
 protected:
+	vector<int> values;
+
 	void changeState(SortingState state)
 	{
 		sortstate = state;
+	}
+
+	void addSorted(const int index)
+	{
+		sortedIndices[index] = true;
+	}
+
+	void setCompared(const int indexl, const int indexr)
+	{
+		comparedIndices[0] = indexl;
+		comparedIndices[1] = indexr;
 	}
 
 	virtual void Swap() = 0;
@@ -185,10 +200,15 @@ protected:
 
 public:
 	SortWindow(const int width, const int height)
-		: Subwindow(width, height), values(width),
-		sortstate(SortingState::Compare),
-		unsorted(WHITE), sorted(GREEN), compared(YELLOW)
-	{}
+		: Subwindow(width, height), values(width), sortedIndices(width),
+		sortstate(SortingState::Compare), comparedIndices(2),
+		unsortedColor(BLUE), sortedColor(GREEN), comparedColor(YELLOW)
+	{
+		iota(begin(values), end(values), 0);
+		shuffle(begin(values), end(values), mt19937{random_device{}()});
+		fill(begin(sortedIndices), end(sortedIndices), false);
+		fill(begin(comparedIndices), end(comparedIndices), 0);
+	}
 
 	void Update() final
 	{
@@ -200,10 +220,94 @@ public:
 		case SortingState::Swap:
 			Swap();
 			break;
-		case SortingState::Done:
-			break;
+		}
+
+		if(++counter < 12) return;
+		counter = 0;
+		for(int x = 0; x < values.size(); x++)
+		{
+			int y = MapInt(0,GetWidth(),0,GetHeight()-1,values[x]);
+			if(sortedIndices[x]) SetLine(x, y, x, GetHeight()-1, sortedColor);
+			else SetLine(x, y, x, GetHeight()-1, unsortedColor);
+			SetLine(x, 0, x, y-1, BLACK);
+		}
+		if(sortstate == SortingState::Done) return;
+		for(int index : comparedIndices)
+		{
+			int y = MapInt(0,GetWidth(),0,GetHeight()-1,values[index]);
+			SetLine(index, y, index, GetHeight()-1, comparedColor);
 		}
 	}
+};
+
+class BubbleSort : public SortWindow
+{
+private:
+	enum class BubbleState
+	{
+		OuterLoop,
+		InnerLoop
+	} bubblestate;
+	bool swapped;
+	int innercounter;
+	int lastunsortedindex;
+
+public:
+	BubbleSort(const int width, const int height)
+		: SortWindow(width, height), bubblestate(BubbleState::OuterLoop)
+	{
+		lastunsortedindex = values.size()-1;
+	}
+
+protected:
+	void Swap() override
+	{
+		swap(values[innercounter], values[innercounter+1]);
+		swapped = true;
+		innercounter++;
+		changeState(SortingState::Compare);
+	}
+
+	void Compare() override
+	{
+		if(bubblestate == BubbleState::OuterLoop)
+		{
+			swapped = false;
+			innercounter = 0;
+			bubblestate = BubbleState::InnerLoop;
+		}
+
+		setCompared(innercounter, innercounter+1);
+		if(innercounter < lastunsortedindex)
+		{
+			if(values[innercounter] > values[innercounter+1])
+			{
+				changeState(SortingState::Swap);
+			}
+			else innercounter++;
+		}
+		else
+		{
+			bubblestate = BubbleState::OuterLoop;
+			addSorted(lastunsortedindex--);
+			if(!swapped)
+			{
+				changeState(SortingState::Done);
+				for(int i = 0; i <= lastunsortedindex; i++)
+					addSorted(i);
+			}
+		}
+	}
+
+	/*
+	do
+	swapped = false
+	for i = 0 to indexOfLastUnsortedElement-1
+		if leftElement > rightElement
+		swap(leftElement, rightElement)
+		swapped = true
+	while swapped
+	*/
 };
 
 class BadSortWindow : public Subwindow
@@ -367,6 +471,7 @@ protected:
 		SetSubWindow<DummyWindow2>(0, "First Thingy");
 		SetSubWindow<DummyWindow2>(5, "Sixth Thingy");
 		SetSubWindow<BadSortWindow>(1, "Sort Thingy");
+		SetSubWindow<BubbleSort>(4, "Bubble Sort");
 
 		return true;
 	}
