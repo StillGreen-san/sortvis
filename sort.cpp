@@ -159,6 +159,55 @@ public:
 
 class SortWindow : public Subwindow
 {
+protected:
+	enum class SortingState
+	{
+		Compare,
+		Swap,
+		Done
+	};
+
+private:
+	vector<int> values;
+	Pixel unsorted;
+	Pixel sorted;
+	Pixel compared;
+	SortingState sortstate;
+
+protected:
+	void changeState(SortingState state)
+	{
+		sortstate = state;
+	}
+
+	virtual void Swap() = 0;
+	virtual void Compare() = 0;
+
+public:
+	SortWindow(const int width, const int height)
+		: Subwindow(width, height), values(width),
+		sortstate(SortingState::Compare),
+		unsorted(WHITE), sorted(GREEN), compared(YELLOW)
+	{}
+
+	void Update() final
+	{
+		switch (sortstate)
+		{
+		case SortingState::Compare:
+			Compare();
+			break;
+		case SortingState::Swap:
+			Swap();
+			break;
+		case SortingState::Done:
+			break;
+		}
+	}
+};
+
+class BadSortWindow : public Subwindow
+{
 private:
 	vector<int> values;
 	Pixel basecolor;
@@ -189,7 +238,7 @@ private:
 	}
 
 public:
-	SortWindow(const int width, const int height)
+	BadSortWindow(const int width, const int height)
 		: Subwindow(width, height), values(width), basecolor(RandomPixel())
 	{
 		init();
@@ -203,7 +252,6 @@ public:
 		{
 			init();
 		}
-		if(counter%2==0) return;
 
 		MapLine(a, basecolor);
 		MapLine(b, basecolor);
@@ -318,7 +366,7 @@ protected:
 		CreateSubwindows(2, 3, 4);
 		SetSubWindow<DummyWindow2>(0, "First Thingy");
 		SetSubWindow<DummyWindow2>(5, "Sixth Thingy");
-		SetSubWindow<SortWindow>(1, "Sort Thingy");
+		SetSubWindow<BadSortWindow>(1, "Sort Thingy");
 
 		return true;
 	}
