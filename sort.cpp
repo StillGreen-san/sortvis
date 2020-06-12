@@ -214,7 +214,7 @@ public:
 		sortstate(SortingState::Compare), comparedIndices(2), loopstate(LoopState::Outer),
 		unsortedColor(BLUE), sortedColor(GREEN), comparedColor(YELLOW)
 	{
-		iota(begin(values), end(values), 0);
+		iota(begin(values), end(values), 1);
 		shuffle(begin(values), end(values), mt19937{random_device{}()});
 		fill(begin(sortedIndices), end(sortedIndices), false);
 		fill(begin(comparedIndices), end(comparedIndices), 0);
@@ -235,18 +235,22 @@ public:
 			break;
 		}
 
+		int canvaswidth = GetWidth()-1;
+		int canvasheight = GetHeight()-1;		
 		for(int x = 0; x < values.size(); x++)
 		{
-			int y = MapInt(0,GetWidth(),0,GetHeight()-1,values[x]);
-			if(sortedIndices[x]) SetLine(x, y, x, GetHeight()-1, sortedColor);
-			else SetLine(x, y, x, GetHeight()-1, unsortedColor);
-			SetLine(x, 0, x, y-1, BLACK);
+			int lineheight = MapInt(0,canvaswidth,0,canvasheight,values[x]);
+			SetLine(x, 0, x, canvasheight-lineheight-1, BLACK);
+			if(sortedIndices[x])
+				SetLine(x, canvasheight-lineheight, x, canvasheight, sortedColor);
+			else
+				SetLine(x, canvasheight-lineheight, x, canvasheight, unsortedColor);
 		}
 		if(sortstate == SortingState::Done) return;
 		for(int index : comparedIndices)
 		{
-			int y = MapInt(0,GetWidth(),0,GetHeight()-1,values[index]);
-			SetLine(index, y, index, GetHeight()-1, comparedColor);
+			int lineheight = MapInt(0,canvaswidth,0,canvasheight,values[index]);
+			SetLine(index, canvasheight-lineheight, index, canvasheight, comparedColor);
 		}
 	}
 };
@@ -346,6 +350,7 @@ protected:
 		if(outercounter == values.size())
 		{
 			changeState(SortingState::Done);
+			return;
 		}
 		
 		if(loopstate == LoopState::Outer)
