@@ -166,6 +166,11 @@ protected:
 		Swap,
 		Done
 	};
+	enum class LoopState
+	{
+		Inner,
+		Outer
+	};
 
 private:
 	Pixel unsortedColor;
@@ -177,11 +182,16 @@ private:
 	int counter = 0;
 
 protected:
+	LoopState loopstate;
 	vector<int> values;
 
 	void changeState(SortingState state)
 	{
 		sortstate = state;
+	}
+	void changeState(LoopState state)
+	{
+		loopstate = state;
 	}
 
 	void addSorted(const int index)
@@ -201,7 +211,7 @@ protected:
 public:
 	SortWindow(const int width, const int height)
 		: Subwindow(width, height), values(width), sortedIndices(width),
-		sortstate(SortingState::Compare), comparedIndices(2),
+		sortstate(SortingState::Compare), comparedIndices(2), loopstate(LoopState::Outer),
 		unsortedColor(BLUE), sortedColor(GREEN), comparedColor(YELLOW)
 	{
 		iota(begin(values), end(values), 0);
@@ -212,6 +222,9 @@ public:
 
 	void Update() final
 	{
+		if(++counter < 6) return;
+		counter = 0;
+
 		switch (sortstate)
 		{
 		case SortingState::Compare:
@@ -222,8 +235,6 @@ public:
 			break;
 		}
 
-		if(++counter < 12) return;
-		counter = 0;
 		for(int x = 0; x < values.size(); x++)
 		{
 			int y = MapInt(0,GetWidth(),0,GetHeight()-1,values[x]);
@@ -243,18 +254,13 @@ public:
 class BubbleSort : public SortWindow
 {
 private:
-	enum class BubbleState
-	{
-		OuterLoop,
-		InnerLoop
-	} bubblestate;
 	bool swapped;
 	int innercounter;
 	int lastunsortedindex;
 
 public:
 	BubbleSort(const int width, const int height)
-		: SortWindow(width, height), bubblestate(BubbleState::OuterLoop)
+		: SortWindow(width, height)
 	{
 		lastunsortedindex = values.size()-1;
 	}
@@ -270,11 +276,11 @@ protected:
 
 	void Compare() override
 	{
-		if(bubblestate == BubbleState::OuterLoop)
+		if(loopstate == LoopState::Outer)
 		{
 			swapped = false;
 			innercounter = 0;
-			bubblestate = BubbleState::InnerLoop;
+			loopstate = LoopState::Inner;
 		}
 
 		setCompared(innercounter, innercounter+1);
@@ -288,7 +294,7 @@ protected:
 		}
 		else
 		{
-			bubblestate = BubbleState::OuterLoop;
+			loopstate = LoopState::Outer;
 			addSorted(lastunsortedindex--);
 			if(!swapped)
 			{
@@ -307,6 +313,69 @@ protected:
 		swap(leftElement, rightElement)
 		swapped = true
 	while swapped
+	*/
+};
+
+class InsertSort : public SortWindow
+{
+private:
+	int outercounter;
+	int innercounter;
+	int firstunsortedindex;
+	int minimumindex;
+
+public:
+	InsertSort(const int width, const int height)
+		: SortWindow(width, height)
+	{
+		firstunsortedindex = 0;
+		outercounter = 0;
+	}
+
+protected:
+	void Swap() override
+	{
+		swap(values[minimumindex], values[firstunsortedindex]);
+		addSorted(firstunsortedindex++);
+		outercounter++;
+		changeState(SortingState::Compare);
+	}
+
+	void Compare() override
+	{
+		if(outercounter == values.size())
+		{
+			changeState(SortingState::Done);
+		}
+		
+		if(loopstate == LoopState::Outer)
+		{
+			minimumindex = firstunsortedindex;
+			loopstate = LoopState::Inner;
+			innercounter = firstunsortedindex;
+		}
+
+		if(innercounter < values.size())
+		{
+			if(values[innercounter] < values[minimumindex])
+				minimumindex = innercounter;
+			setCompared(innercounter, minimumindex);
+			innercounter++;
+		}
+		else
+		{
+			changeState(LoopState::Outer);
+			changeState(SortingState::Swap);
+		}
+	}
+
+	/*
+	repeat (numOfElements - 1) times
+		set the first unsorted element as the minimum
+		for each of the unsorted elements
+			if element < currentMinimum
+				set element as new minimum
+		swap minimum with first unsorted position
 	*/
 };
 
@@ -472,6 +541,7 @@ protected:
 		SetSubWindow<DummyWindow2>(5, "Sixth Thingy");
 		SetSubWindow<BadSortWindow>(1, "Sort Thingy");
 		SetSubWindow<BubbleSort>(4, "Bubble Sort");
+		SetSubWindow<InsertSort>(3, "Insert Sort");
 
 		return true;
 	}
