@@ -359,6 +359,79 @@ protected:
 	*/
 };
 
+class InsertionSort : public SortWindow
+{
+private:
+	int outercounter;
+	int innercounter;
+	int lastsortedindex;
+	int elementxindex;
+
+public:
+	InsertionSort(const int width, const int height)
+		: SortWindow(width, height)
+	{
+		outercounter = 0;
+		lastsortedindex = 0;
+	}
+
+protected:
+	void Swap() override
+	{
+		if(loopstate == LoopState::Inner)
+		{
+			swap(values[innercounter], values[elementxindex]);
+			elementxindex = innercounter--;
+		}
+		changeState(SortingState::Compare);
+		if(innercounter == -1)
+			changeState(LoopState::Outer);
+	}
+
+	void Compare() override
+	{
+		if(loopstate == LoopState::Outer)
+		{
+			addSorted(outercounter);
+			lastsortedindex = outercounter++;
+			
+			if(!(outercounter < values.size()))
+			{
+				changeState(SortingState::Done);
+				return;
+			}
+			elementxindex = outercounter;
+			innercounter = lastsortedindex;
+			changeState(LoopState::Inner);
+		}
+
+		if(innercounter >= 0)
+		{
+			setCompared(innercounter, elementxindex);
+			if(values[innercounter] > values[elementxindex])
+			{
+				changeState(SortingState::Swap);
+			}
+			else
+			{
+				changeState(SortingState::Swap);
+				changeState(LoopState::Outer);
+			}
+		}
+	}
+
+	/*
+	mark first element as sorted
+	for each unsorted element X
+		'extract' the element X
+		for j = lastSortedIndex down to 0
+			if current element j > X
+				move sorted element to the right by 1
+			else
+				break loop and insert X here
+	*/
+};
+
 struct SubwindowStorage
 {
 	int xoffset;
@@ -453,6 +526,7 @@ protected:
 		CreateSubwindows(2, 3, 4);
 		SetSubWindow<BubbleSort>(4, "Bubble Sort");
 		SetSubWindow<SelectionSort>(3, "Selection Sort");
+		SetSubWindow<InsertionSort>(1, "Insertion Sort");
 
 		return true;
 	}
