@@ -132,31 +132,6 @@ public:
 	}
 };
 
-class DummyWindow2 : public Subwindow
-{
-private:
-
-
-public:
-	DummyWindow2(const int width, const int height)
-		: Subwindow(width, height)
-	{}
-
-	void Update() override
-	{
-		if(rand()%2)
-		{
-			int x = rand()%GetWidth();
-			SetLine(x,0,x,GetHeight()-1, RandomPixel());
-		}
-		else
-		{
-			int y = rand()%GetHeight();
-			SetLine(0,y,GetWidth()-1,y, RandomPixel());
-		}
-	}
-};
-
 class SortWindow : public Subwindow
 {
 protected:
@@ -320,7 +295,7 @@ protected:
 	*/
 };
 
-class InsertSort : public SortWindow
+class SelectionSort : public SortWindow
 {
 private:
 	int outercounter;
@@ -329,7 +304,7 @@ private:
 	int minimumindex;
 
 public:
-	InsertSort(const int width, const int height)
+	SelectionSort(const int width, const int height)
 		: SortWindow(width, height)
 	{
 		firstunsortedindex = 0;
@@ -382,72 +357,6 @@ protected:
 				set element as new minimum
 		swap minimum with first unsorted position
 	*/
-};
-
-class BadSortWindow : public Subwindow
-{
-private:
-	vector<int> values;
-	Pixel basecolor;
-	Pixel highlight;
-	int counter;
-	int a, b;
-
-	void init()
-	{
-		iota(begin(values), end(values), 1);
-		shuffle(begin(values), end(values), mt19937{random_device{}()});
-
-		for (int x=0; x < values.size(); ++x)
-		{
-			MapLine(x, basecolor);
-		}
-
-		counter = 0;
-		a = 0;
-		b = 1;
-	}
-
-	inline void MapLine(const int x, const Pixel& color)
-	{
-		int y = MapInt(0,GetWidth(),0,GetHeight()-1,values[x]);
-		SetLine(x, y, x, GetHeight()-1, color);
-		SetLine(x, 0, x, y-1, BLACK);
-	}
-
-public:
-	BadSortWindow(const int width, const int height)
-		: Subwindow(width, height), values(width), basecolor(RandomPixel())
-	{
-		init();
-		highlight = WHITE;
-	}
-
-	void Update() override
-	{
-		counter++;
-		if(counter > 4800)
-		{
-			init();
-		}
-
-		MapLine(a, basecolor);
-		MapLine(b, basecolor);
-
-		a++;
-		b++;
-		if(b==GetWidth())
-		{
-			a = 0;
-			b = 1;
-		}
-
-		if(*(begin(values)+a) > *(begin(values)+b))
-			swap(*(begin(values)+a),*(begin(values)+b));
-
-		MapLine(a, highlight);
-		MapLine(b, highlight);
-	}
 };
 
 struct SubwindowStorage
@@ -542,11 +451,8 @@ protected:
 	virtual bool OnUserCreate()
 	{
 		CreateSubwindows(2, 3, 4);
-		SetSubWindow<DummyWindow2>(0, "First Thingy");
-		SetSubWindow<DummyWindow2>(5, "Sixth Thingy");
-		SetSubWindow<BadSortWindow>(1, "Sort Thingy");
 		SetSubWindow<BubbleSort>(4, "Bubble Sort");
-		SetSubWindow<InsertSort>(3, "Insert Sort");
+		SetSubWindow<SelectionSort>(3, "Selection Sort");
 
 		return true;
 	}
