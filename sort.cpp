@@ -174,6 +174,11 @@ protected:
 		sortedIndices[index] = true;
 	}
 
+	const vector<bool>& getSortedIndices()
+	{
+		return sortedIndices;
+	}
+
 	void setCompared(const int indexl, const int indexr)
 	{
 		comparedIndices[0] = indexl;
@@ -376,6 +381,7 @@ public:
 	}
 
 protected:
+	//TODO: check if actually ionsertion sort (insertion overhead)
 	void Swap() override
 	{
 		if(loopstate == LoopState::Inner)
@@ -429,6 +435,124 @@ protected:
 				move sorted element to the right by 1
 			else
 				break loop and insert X here
+	*/
+};
+
+class QuickSort : public SortWindow
+{
+private:
+	int pastendindex;
+	int innercounter;
+	int pivotindex;
+	int storeindex;
+
+	/** returns start & end of first valid partion
+	 * if no partition is found return is -1, 0
+	 * 
+	 * @brief returns start & pastend of first valid partion
+	 * 
+	 * @return pair<int start, int end> 
+	 */
+	pair<int, int> findValidPartition()
+	{
+		pair<int, int> partition{-1,-1};
+		const vector<bool>& sortedindices = getSortedIndices();
+		
+		for(int index=0; index < sortedindices.size(); index++)
+		{
+			if(partition.first == -1)
+			{
+				if(!sortedindices[index])
+					partition.first = index;
+			}
+			else
+			{
+				if(sortedindices[index])
+				{
+					partition.second = index;
+					return partition;
+				}
+			}
+		}
+
+		if(partition.first > partition.second)
+			partition.second = sortedindices.size();
+		else
+			partition.second = 0;
+
+		return partition;
+	}
+
+public:
+	QuickSort(const int width, const int height)
+		: SortWindow(width, height)
+	{
+	}
+
+protected:
+	void Swap() override
+	{
+		if(loopstate == LoopState::Inner)
+		{
+			swap(values[innercounter-1], values[storeindex]);
+			setCompared(innercounter-1, storeindex);
+			storeindex++;
+		}
+		else
+		{
+			swap(values[pivotindex], values[--storeindex]);
+			setCompared(pivotindex, storeindex);
+			addSorted(storeindex);
+		}
+		changeState(SortingState::Compare);
+	}
+
+	void Compare() override
+	{
+		if(loopstate == LoopState::Outer)
+		{
+			pair<int, int> partition = findValidPartition();
+			if(partition.first == partition.second-1)
+			{
+				if(partition.first == -1)
+				{
+					changeState(SortingState::Done);
+					return;
+				}
+				addSorted(partition.first);
+				setCompared(partition.first, partition.first);
+				return;
+			}
+			pivotindex = partition.first;
+			storeindex = pivotindex + 1;
+			innercounter = storeindex;
+			pastendindex = partition.second;
+			changeState(LoopState::Inner);
+		}
+
+		if(innercounter < pastendindex)
+		{
+			if(values[innercounter] < values[pivotindex])
+				changeState(SortingState::Swap);
+			innercounter++;
+			setCompared(innercounter, pivotindex);
+		}
+		else
+		{
+			changeState(SortingState::Swap);
+			changeState(LoopState::Outer);
+		}
+	}
+
+	/*
+	for each (unsorted) partition
+		set first element as pivot
+		storeIndex = pivotIndex + 1
+		for i = pivotIndex + 1 to rightmostIndex
+			if element[i] < element[pivot]
+				swap(i, storeIndex)
+				storeIndex++
+		swap(pivot, storeIndex - 1)
 	*/
 };
 
@@ -527,6 +651,7 @@ protected:
 		SetSubWindow<BubbleSort>(4, "Bubble Sort");
 		SetSubWindow<SelectionSort>(3, "Selection Sort");
 		SetSubWindow<InsertionSort>(1, "Insertion Sort");
+		SetSubWindow<QuickSort>(2, "Quick Sort");
 
 		return true;
 	}
