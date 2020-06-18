@@ -10,7 +10,8 @@
                 "/Fe:${workspaceFolder}/Debug/${fileBasenameNoExtension}.exe",
                 "/Fd:${workspaceFolder}/Debug/",
                 "/Fo:${workspaceFolder}/Debug/",
-                "${file}"
+                "sort.cpp","sortwindow.cpp","subwindow.cpp",
+                "bubble.cpp","insertion.cpp","quick.cpp","selection.cpp"
             ]
         },
         {
@@ -20,10 +21,11 @@
             "args": [
                 "/EHsc",
                 "/O2",
-                "/Fe:${workspaceFolder}/Release/${fileBasenameNoExtension}.exe",
+                "/Fe:${workspaceFolder}/Release/sort.exe",
                 "/Fd:${workspaceFolder}/Release/",
                 "/Fo:${workspaceFolder}/Release/",
-                "${file}"
+                "sort.cpp","sortwindow.cpp","subwindow.cpp",
+                "bubble.cpp","insertion.cpp","quick.cpp","selection.cpp"
             ]
         }
     ],
