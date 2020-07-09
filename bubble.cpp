@@ -26,9 +26,9 @@ void BubbleSort::Compare()
 		loopstate = LoopState::Inner;
 	}
 
-	setCompared(innercounter, innercounter+1);
 	if(innercounter < lastunsortedindex)
 	{
+		setCompared(innercounter, innercounter+1);
 		if(values[innercounter] > values[innercounter+1])
 		{
 			changeState(SortingState::Swap);

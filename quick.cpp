@@ -81,8 +81,8 @@ void QuickSort::Compare()
 	{
 		if(values[innercounter] < values[pivotindex])
 			changeState(SortingState::Swap);
-		innercounter++;
 		setCompared(innercounter, pivotindex);
+		innercounter++;
 	}
 	else
 	{
