@@ -13,7 +13,8 @@ protected:
 	enum class LoopState
 	{
 		Inner,
-		Outer
+		Outer,
+		Innerst
 	};
 
 private:
