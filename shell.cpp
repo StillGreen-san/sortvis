@@ -25,12 +25,14 @@ void ShellSort::Compare()
 {
 	if(loopstate == LoopState::Outer)
 	{
-		//TODO: change direct access to loopstate in all classes
-		loopstate = LoopState::Inner;
+		//TODO: change direct access to things in all classes
+		changeState(LoopState::Inner);
 		outercounter++;
 		if(outercounter == gaps.size())
 		{
 			changeState(SortingState::Done);
+			for(int i=values.size()-1; i>=0; i--)
+				addSorted(i);
 			return;
 		}
 		innercounter = gaps[outercounter];
@@ -38,7 +40,7 @@ void ShellSort::Compare()
 	
 	if(loopstate == LoopState::Inner)
 	{
-		loopstate = LoopState::Innerst;
+		changeState(LoopState::Innerst);
 		innerstcounter = innercounter;
 	}
 	
@@ -55,5 +57,6 @@ void ShellSort::Compare()
 			changeState(LoopState::Outer);
 		else
 			changeState(LoopState::Inner);
+		Compare();
 	}
 }
