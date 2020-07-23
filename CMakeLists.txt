@@ -9,4 +9,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(sort sort.cpp sortwindow.cpp subwindow.cpp 
 				bubble.cpp insertion.cpp quick.cpp
-				selection.cpp shell.cpp)
+				selection.cpp shell.cpp heap.cpp)

@@ -108,6 +108,7 @@ protected:
 		SetSubWindow<InsertionSort>(1, "Insertion Sort");
 		SetSubWindow<QuickSort>(2, "Quick Sort");
 		SetSubWindow<ShellSort>(5, "Shell Sort");
+		SetSubWindow<HeapSort>(0, "Heap Sort");
 
 		return true;
 	}

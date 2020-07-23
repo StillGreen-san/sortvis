@@ -5,3 +5,4 @@
 #include "quick.hpp"
 #include "selection.hpp"
 #include "shell.hpp"
+#include "heap.hpp"
