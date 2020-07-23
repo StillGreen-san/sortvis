@@ -1,5 +1,6 @@
 #pragma once
 #include "heap.hpp"
+#include <algorithm>
 
 using namespace std;
 
@@ -7,7 +8,7 @@ HeapSort::HeapSort(const int width, const int height)
 	: SortWindow(width, height)
 {
 	innercounter = values.size()-1;
-	outercounter = iParent(innercounter);
+	outercounter = iParent(innercounter) + 1;
 }
 
 void HeapSort::Swap()
@@ -16,15 +17,19 @@ void HeapSort::Swap()
 	{
 	case LoopState::Inner :
 		swap(values[innercounter], values[0]);
+		setCompared(innerstroot, innerstswap);
 		addSorted(innercounter);
 		innercounter--;
 		changeState(SortingState::Compare);
 		changeState(LoopState::Innerst);
+		innerstroot = 0;
 		previousloopstate = LoopState::Inner;
 		break;
 	case LoopState::Innerst :
 		swap(values[innerstroot], values[innerstswap]);
 		innerstroot = innerstswap;
+		innerststep = 0;
+		changeState(SortingState::Compare);
 		break;
 	}
 }
@@ -33,22 +38,22 @@ void HeapSort::Compare()
 {
 	if(loopstate == LoopState::Outer)
 	{
+		outercounter -= 1;
 		if(outercounter >= 0)
 		{
 			changeState(LoopState::Innerst);
 			innerststep = 0;
 			innerstroot = outercounter;
 			previousloopstate = LoopState::Outer;
-			outercounter -= 1;
 		}
 		else
 		{
+			bool ih = is_heap(begin(values), end(values));//TODO: rm dbg & inc
 			changeState(LoopState::Inner);
 			outercounter = 0;
 		}
-		
 	}
-	
+
 	if(loopstate == LoopState::Inner)
 	{
 		if(innercounter > 0)
@@ -92,6 +97,7 @@ void HeapSort::Compare()
 				if(innerstswap == innerstroot)
 				{
 					changeState(previousloopstate);
+					//TODO: Compare(); for the below also
 				}
 				else
 				{
@@ -106,17 +112,17 @@ void HeapSort::Compare()
 	}
 }
 
-inline int HeapSort::iParent(int i) 
+inline int HeapSort::iParent(int i)
 {
 	return (i - 1) / 2;
 }
 
-inline int HeapSort::iLeftChild(int i) 
+inline int HeapSort::iLeftChild(int i)
 {
 	return (2 * i) + 1;
 }
 
-inline int HeapSort::iRightChild(int i) 
+inline int HeapSort::iRightChild(int i)
 {
 	return (2 * i) + 2;
 }
