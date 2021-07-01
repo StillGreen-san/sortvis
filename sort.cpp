@@ -126,7 +126,7 @@ protected:
 int main()
 {
 	OLC_SORT game;
-	game.Construct(795, 503, 2, 2, false, true);
+	game.Construct(795, 503, 2, 2, false, true, false);
 	game.Start();
 
 	return 0;
