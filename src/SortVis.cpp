@@ -1,47 +1,58 @@
-#define OLC_PGE_APPLICATION
-#include "olcPixelGameEngine.h"
+#include <iostream>
 
-class SortVis : public olc::PixelGameEngine
+#include <cppcoro/generator.hpp>
+
+struct Sortable
 {
-public:
-	SortVis()
+	int value = 0;
+
+	enum class SortState : char
 	{
-		sAppName = "Sorting Visualization | powered by olcPixelGameEngine";
+		Full,
+		Partial,
+		None
+	} sortState = SortState::None;
+
+	enum class AccessState : char
+	{
+		None,
+		Read,
+		Write
+	} accessState = AccessState::None;
+
+	bool operator<(const Sortable& other)
+	{
+		return value < other.value;
 	}
 
-protected:
-	// Called by olcConsoleGameEngine
-	bool OnUserCreate() override
+	Sortable& operator=(int value)
 	{
-		return true;
-	}
-
-	// Called by olcConsoleGameEngine
-	bool OnUserUpdate(float /*fElapsedTime*/) override
-	{
-		return true;
+		this->value = value;
+		return *this;
 	}
 };
 
+cppcoro::generator<int> sorter(int data)
+{
+	int i = 0;
+	while(true)
+	{
+		co_yield i + data;
+		++i;
+	}
+}
+
+constexpr int MAX_NUMS = 10;
+
 int main()
 {
-	SortVis vis;
-
-	constexpr int32_t windowWidth = 400;
-	constexpr int32_t windowHeight = 350;
-	constexpr int32_t pixelSize = 2;
-
-	olc::rcode rcode = vis.Construct(windowWidth, windowHeight, pixelSize, pixelSize, false, true, false);
-	if(rcode != olc::OK)
+	int offset = 0;
+	std::cin >> offset;
+	cppcoro::generator<int> inf = sorter(offset);
+	auto it = inf.begin();
+	for(int i = 0; i < MAX_NUMS; ++i)
 	{
-		return 1;
+		std::cout << *it << ' ';
+		++it;
 	}
-
-	rcode = vis.Start();
-	if(rcode != olc::OK)
-	{
-		return 1;
-	}
-
-	return 0;
 }

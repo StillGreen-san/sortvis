@@ -11,8 +11,11 @@ include( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerWarnings.cmake )
 include( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ProjectSettings.cmake )
 include( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/StaticAnalyzers.cmake )
 
+find_package( cppcoro CONFIG REQUIRED )
+add_compile_definitions( _SILENCE_CLANG_COROUTINE_MESSAGE )
+
 set( INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inc )
-set( EXT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext )
+# set( EXT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext )
 set( SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src )
 
 set( TARGET_MAIN ${PROJECT_NAME} )
@@ -22,7 +25,7 @@ set( SOURCES_MAIN
 )
 
 add_executable( ${TARGET_MAIN} ${SOURCES_MAIN} )
-target_include_directories( ${TARGET_MAIN} PUBLIC ${INC_DIR} )
-target_include_directories( ${TARGET_MAIN} SYSTEM PUBLIC ${EXT_DIR} )
-target_link_libraries( ${TARGET_MAIN} PUBLIC cppcoro )
-target_compile_features( ${TARGET_MAIN} PUBLIC cxx_std_20 )
+target_include_directories( ${TARGET_MAIN} PRIVATE ${INC_DIR} )
+# target_include_directories( ${TARGET_MAIN} SYSTEM PRIVATE ${EXT_DIR} )
+target_link_libraries( ${TARGET_MAIN} PRIVATE cppcoro )
+target_compile_features( ${TARGET_MAIN} PRIVATE cxx_std_20 )
