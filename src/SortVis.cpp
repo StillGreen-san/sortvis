@@ -63,18 +63,20 @@ struct SortableVector
 		return data.size();
 	}
 
-	std::vector<Sortable>::iterator begin() noexcept
+	[[nodiscard]] std::vector<Sortable>::iterator begin() noexcept
 	{
 		return data.begin();
 	}
 
-	std::vector<Sortable>::iterator end() noexcept
+	[[nodiscard]] std::vector<Sortable>::iterator end() noexcept
 	{
 		return data.end();
 	}
 };
 
 constexpr int USELESS_MAGIC_VALUE = 0b01001110100101000101010010110011;
+
+using SorterAlgorithm = cppcoro::generator<const int> (*)(std::shared_ptr<SortableVector>);
 
 cppcoro::generator<const int> bubble(std::shared_ptr<SortableVector> data)
 {
@@ -112,23 +114,26 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Sortable>& dat)
 	return os;
 }
 
-struct GeneratorStorage
+struct Sorter
 {
 	std::shared_ptr<SortableVector> data;
 	cppcoro::generator<const int> gen;
 	cppcoro::generator<const int>::iterator it;
 	cppcoro::detail::generator_sentinel end;
 
-	GeneratorStorage(std::shared_ptr<SortableVector> datavec,
-	    cppcoro::generator<const int> (*generator)(std::shared_ptr<SortableVector>)) :
-	    data{std::move(datavec)},
-	    gen{generator(data)}, it{gen.begin()}, end{gen.end()}
+	Sorter(std::shared_ptr<SortableVector> datavec, SorterAlgorithm generator) :
+	    data{std::move(datavec)}, gen{generator(data)}, it{gen.begin()}, end{gen.end()}
 	{
 	}
 
 	[[nodiscard]] bool generationLeft() const noexcept
 	{
 		return it != end;
+	}
+
+	void advance()
+	{
+		++it;
 	}
 };
 
@@ -141,21 +146,35 @@ int main()
 	std::mt19937_64 rng(std::random_device{}());
 	std::shuffle(data.begin(), data.end(), rng);
 
-	std::vector<GeneratorStorage> generators;
+	std::vector<Sorter> generators;
 	generators.emplace_back(std::make_shared<SortableVector>(data), bubble);
+	SorterAlgorithm a = bubble;
 
 	bool generationleft = true;
 	while(generationleft)
 	{
 		generationleft = false;
-		for(GeneratorStorage& storage : generators)
+		for(Sorter& sorter : generators)
 		{
-			if(storage.generationLeft())
+			if(sorter.generationLeft())
 			{
-				std::cout << storage.data->data << std::endl;
-				++storage.it;
+				std::cout << sorter.data->data << std::endl;
+				sorter.advance();
 				generationleft = true;
 			}
 		}
 	}
+
+	// sortvis::SorterCollection sorters(
+	//     10, {sortvis::algorithms::bubble/*, sortvis::algorithms::quick, sortvis::algorithms::shell,
+	//             sortvis::algorithms::heap, sortvis::algorithms::insertion, sortvis::algorithms::selection*/});
+
+	// while(!sorters.allFinished())
+	// {
+	// 	sortvis::cli::print(sorters);
+
+	// 	sorters.advance();
+	// }
+
+	// sorters.reset();
 }
