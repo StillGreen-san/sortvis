@@ -1,5 +1,6 @@
 #pragma once
 
+#include "algorithms.hpp"
 #include "sortable.hpp"
 
 #include <cppcoro/generator.hpp>
@@ -8,15 +9,18 @@
 
 namespace sortvis
 {
-struct Sorter
+class Sorter
 {
-	std::shared_ptr<SortableCollection> data;
+private:
+	std::shared_ptr<sortvis::SortableCollection> colct;
 	cppcoro::generator<const int> gen;
 	cppcoro::generator<const int>::iterator it;
 	cppcoro::detail::generator_sentinel end;
 
-	Sorter(std::shared_ptr<SortableCollection> datavec, sortvis::SorterAlgorithm generator) :
-	    data{std::move(datavec)}, gen{generator(data)}, it{gen.begin()}, end{gen.end()}
+public:
+	Sorter(const SortableCollection& datavec, sortvis::SorterAlgorithm generator) :
+	    colct{std::make_shared<sortvis::SortableCollection>(datavec)}, gen{generator(colct)}, it{gen.begin()},
+	    end{gen.end()}
 	{
 	}
 
@@ -28,7 +32,20 @@ struct Sorter
 	bool advance()
 	{
 		++it;
-		return !finished();
+		return finished();
+	}
+
+	bool reset(const sortvis::SortableCollection& dat)
+	{
+		colct->reset(dat);
+		it = gen.begin();
+		end = gen.end();
+		return finished();
+	}
+
+	const sortvis::SortableCollection& data() const noexcept
+	{
+		return *colct;
 	}
 };
 
@@ -37,32 +54,48 @@ class SorterCollection
 private:
 	std::vector<sortvis::Sorter> sorters;
 	sortvis::SortableCollection initialState;
-	bool finished = false;
+	bool allFinished = true;
 
 public:
 	SorterCollection(size_t elements, std::initializer_list<sortvis::SorterAlgorithm> algorithms) :
 	    initialState(elements)
 	{
+		initialState.randomize();
 		for(sortvis::SorterAlgorithm algo : algorithms)
 		{
-			sorters.emplace_back(std::make_shared<sortvis::SortableCollection>(initialState), algo);
-			finished |= !sorters.back().finished();
+			sorters.emplace_back(initialState, algo);
+			allFinished &= sorters.back().finished();
+			if(sorters.back().data() != initialState)
+			{
+				throw sortvis::InitFailureException();
+			}
 		}
 	}
 
 	[[nodiscard]] bool finished() const noexcept
 	{
-		return finished;
+		return allFinished;
 	}
 
-	void advance()
+	bool advance()
 	{
+		allFinished = true;
 		for(sortvis::Sorter& sorter : sorters)
 		{
-			finished |= sorter.advance();
+			allFinished &= sorter.advance();
 		}
+		return allFinished;
 	}
 
-	void reset();
+	bool reset()
+	{
+		allFinished = true;
+		initialState.randomize();
+		for(sortvis::Sorter& sorter : sorters)
+		{
+			allFinished &= sorter.reset(initialState);
+		}
+		return allFinished;
+	}
 };
 } // namespace sortvis

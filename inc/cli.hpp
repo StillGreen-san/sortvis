@@ -7,7 +7,7 @@
 
 namespace sortvis::cli
 {
-void print(const sortvis::SorterCollection& dat)
+void print(const sortvis::SorterCollection&)
 {
 }
 } // namespace sortvis::cli

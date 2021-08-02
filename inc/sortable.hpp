@@ -36,10 +36,12 @@ struct Sortable
 	}
 };
 
-struct SortableCollection
+class SortableCollection
 {
+private:
 	std::vector<sortvis::Sortable> data;
 
+public:
 	explicit SortableCollection(size_t elements)
 	{
 		data.resize(elements);
@@ -73,14 +75,24 @@ struct SortableCollection
 		return data.size();
 	}
 
-	[[nodiscard]] std::vector<sortvis::Sortable>::iterator begin() noexcept
+	[[nodiscard]] std::vector<sortvis::Sortable>::const_iterator begin() const noexcept
 	{
-		return data.begin();
+		return data.cbegin();
 	}
 
-	[[nodiscard]] std::vector<sortvis::Sortable>::iterator end() noexcept
+	[[nodiscard]] std::vector<sortvis::Sortable>::const_iterator end() const noexcept
 	{
-		return data.end();
+		return data.cend();
+	}
+
+	void reset(const sortvis::SortableCollection& dat)
+	{
+		data = dat.data;
+	}
+
+	bool operator!=(const sortvis::SortableCollection& dat)
+	{
+		return data != dat.data;
 	}
 };
 } // namespace sortvis
