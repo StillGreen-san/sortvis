@@ -10,7 +10,7 @@ int main()
 	    ELEMENTS_TO_SORT, {sortvis::algorithms::bubble/*, sortvis::algorithms::quick, sortvis::algorithms::shell,
 	            sortvis::algorithms::heap, sortvis::algorithms::insertion, sortvis::algorithms::selection*/});
 
-	while(!sorters.finished())
+	while(!sorters.allHaveFinished())
 	{
 		sortvis::cli::print(sorters);
 

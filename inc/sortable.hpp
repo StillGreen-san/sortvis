@@ -52,7 +52,12 @@ public:
 
 	void randomize()
 	{
-		std::default_random_engine rng(std::random_device{}());
+		randomize(std::random_device{}());
+	}
+
+	void randomize(std::default_random_engine::result_type seed)
+	{
+		std::default_random_engine rng(seed);
 		std::shuffle(data.begin(), data.end(), rng);
 	}
 
@@ -90,7 +95,7 @@ public:
 		data = dat.data;
 	}
 
-	bool operator!=(const sortvis::SortableCollection& dat)
+	bool operator!=(const sortvis::SortableCollection& dat) const
 	{
 		return data != dat.data;
 	}

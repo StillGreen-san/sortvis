@@ -9,6 +9,10 @@
 
 namespace sortvis
 {
+/**
+ * @brief A SorterAlgorithm that sorts a SortableCollection
+ *
+ */
 class Sorter
 {
 private:
@@ -18,31 +22,56 @@ private:
 	cppcoro::detail::generator_sentinel end;
 
 public:
-	Sorter(const SortableCollection& datavec, sortvis::SorterAlgorithm generator) :
+	/**
+	 * @brief Construct a new Sorter object
+	 *
+	 * @param datavec SortableCollection to sort
+	 * @param generator SorterAlgorithm to use to sort
+	 */
+	Sorter(const sortvis::SortableCollection& datavec, sortvis::SorterAlgorithm generator) :
 	    colct{std::make_shared<sortvis::SortableCollection>(datavec)}, gen{generator(colct)}, it{gen.begin()},
 	    end{gen.end()}
 	{
 	}
 
-	[[nodiscard]] bool finished() const noexcept
+	/**
+	 * @brief returns wether the SorterAlgoritm has finished sorting the SortableCollection
+	 *
+	 */
+	[[nodiscard]] bool hasFinished() const noexcept
 	{
 		return it == end;
 	}
 
+	/**
+	 * @brief advances the SorterAlgorithm by one step
+	 *
+	 * @return hasFinished()
+	 */
 	bool advance()
 	{
 		++it;
-		return finished();
+		return hasFinished();
 	}
 
+	/**
+	 * @brief resets the SortableCollection to the dat argument
+	 * and restarts the SorterAlgorithm
+	 *
+	 * @param dat SortableCollection to reset to
+	 * @return hasFinished()
+	 */
 	bool reset(const sortvis::SortableCollection& dat)
 	{
 		colct->reset(dat);
 		it = gen.begin();
 		end = gen.end();
-		return finished();
+		return hasFinished();
 	}
 
+	/**
+	 * @brief returns const& to the SortableCollection
+	 */
 	const sortvis::SortableCollection& data() const noexcept
 	{
 		return *colct;
@@ -64,7 +93,7 @@ public:
 		for(sortvis::SorterAlgorithm algo : algorithms)
 		{
 			sorters.emplace_back(initialState, algo);
-			allFinished &= sorters.back().finished();
+			allFinished &= sorters.back().hasFinished();
 			if(sorters.back().data() != initialState)
 			{
 				throw sortvis::InitFailureException();
@@ -72,7 +101,7 @@ public:
 		}
 	}
 
-	[[nodiscard]] bool finished() const noexcept
+	[[nodiscard]] bool allHaveFinished() const noexcept
 	{
 		return allFinished;
 	}
@@ -84,7 +113,7 @@ public:
 		{
 			allFinished &= sorter.advance();
 		}
-		return allFinished;
+		return allHaveFinished();
 	}
 
 	bool reset()
@@ -95,7 +124,7 @@ public:
 		{
 			allFinished &= sorter.reset(initialState);
 		}
-		return allFinished;
+		return allHaveFinished();
 	}
 };
 } // namespace sortvis
