@@ -6,6 +6,10 @@
 
 namespace sortvis
 {
+/**
+ * @brief Value for SortableCollection with additional State for Visualization
+ *
+ */
 struct Sortable
 {
 	int value = 0;
@@ -24,11 +28,18 @@ struct Sortable
 		Write
 	} accessState = AccessState::None;
 
-	bool operator<(const Sortable& other) const noexcept
+	/**
+	 * @brief < operator compares only value not state
+	 */
+	[[nodiscard]] bool operator<(const Sortable& other) const noexcept
 	{
 		return value < other.value;
 	}
 
+	/**
+	 * @brief = operator to asign value, does not change states
+	 *
+	 */
 	Sortable& operator=(int other) noexcept
 	{
 		value = other;
@@ -95,7 +106,7 @@ public:
 		data = dat.data;
 	}
 
-	bool operator!=(const sortvis::SortableCollection& dat) const
+	[[nodiscard]] bool operator!=(const sortvis::SortableCollection& dat) const
 	{
 		return data != dat.data;
 	}

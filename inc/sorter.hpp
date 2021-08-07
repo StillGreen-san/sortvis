@@ -78,6 +78,10 @@ public:
 	}
 };
 
+/**
+ * @brief A Collections of Sorters supplying them with the same randomized SortableCollection
+ *
+ */
 class SorterCollection
 {
 private:
@@ -86,6 +90,12 @@ private:
 	bool allFinished = true;
 
 public:
+	/**
+	 * @brief Construct a new Sorter Collection object
+	 *
+	 * @param elements the number of elements to generate for the Sorters
+	 * @param algorithms a list of SorterAlgorithms for the Sorters to use
+	 */
 	SorterCollection(size_t elements, std::initializer_list<sortvis::SorterAlgorithm> algorithms) :
 	    initialState(elements)
 	{
@@ -101,11 +111,19 @@ public:
 		}
 	}
 
+	/**
+	 * @brief returns true if all Sorters have finished sorting
+	 */
 	[[nodiscard]] bool allHaveFinished() const noexcept
 	{
 		return allFinished;
 	}
 
+	/**
+	 * @brief advance all sorters by one step
+	 *
+	 * @return allHaveFinished()
+	 */
 	bool advance()
 	{
 		allFinished = true;
@@ -116,6 +134,11 @@ public:
 		return allHaveFinished();
 	}
 
+	/**
+	 * @brief resets all Sorters with new randomized data
+	 *
+	 * @return allHaveFinished()
+	 */
 	bool reset()
 	{
 		allFinished = true;
