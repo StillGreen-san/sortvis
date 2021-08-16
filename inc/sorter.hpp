@@ -34,6 +34,14 @@ public:
 	{
 	}
 
+	// TODO add custom copy constructors (defaults break with cppcoro::generator)
+	Sorter() = delete;
+	Sorter(Sorter&&) = default;
+	Sorter(const Sorter&) = delete;
+	Sorter& operator=(Sorter&&) = default;
+	Sorter& operator=(const Sorter&) = delete;
+	~Sorter() = default;
+
 	/**
 	 * @brief returns wether the SorterAlgoritm has finished sorting the SortableCollection
 	 *
@@ -106,7 +114,8 @@ public:
 			allFinished &= sorters.back().hasFinished();
 			if(sorters.back().data() != initialState)
 			{
-				throw sortvis::InitFailureException();
+				throw sortvis::InitFailureException(
+				    "Initialization of SorterAlgorithm Failed! Sorter Data does not match InitialState Data!");
 			}
 		}
 	}

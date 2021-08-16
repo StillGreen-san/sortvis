@@ -13,6 +13,7 @@ using SorterAlgorithm = cppcoro::generator<const int> (*)(std::shared_ptr<sortvi
 
 class InitFailureException : public std::exception
 {
+	using std::exception::exception;
 };
 } // namespace sortvis
 
