@@ -1,0 +1,22 @@
+#include <catch2/catch.hpp>
+
+#include "sorter.hpp"
+
+const sortvis::SortableCollection SC_ASC{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+const sortvis::SortableCollection SC_DSC{20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+const sortvis::SortableCollection SC_GRP{18, 17, 16, 15, 20, 19, 14, 13, 7, 8, 9, 5, 4, 3, 6, 10, 11, 12, 2, 1};
+const sortvis::SortableCollection SC_RND{3, 16, 14, 20, 4, 1, 11, 2, 18, 5, 9, 6, 17, 19, 7, 10, 12, 8, 15, 13};
+
+const sortvis::SortableCollection* SC_ARR[]{&SC_ASC, &SC_DSC, &SC_GRP, &SC_RND};
+
+TEST_CASE("bubble")
+{
+	for(const sortvis::SortableCollection* sc_ptr : SC_ARR)
+	{
+		sortvis::Sorter asc(*sc_ptr, sortvis::algorithms::bubble);
+
+		while(!asc.advance()) {}
+
+		CHECK(asc.data() == SC_ASC);
+	}
+}

@@ -36,6 +36,22 @@ struct Sortable
 		Write
 	} accessState = AccessState::None;
 
+	Sortable() noexcept = default;
+
+	explicit Sortable(int val) : value{val}
+	{
+	}
+
+	/**
+	 * @brief = operator to asign value, does not change states
+	 *
+	 */
+	Sortable& operator=(int other) noexcept
+	{
+		value = other;
+		return *this;
+	}
+
 	/**
 	 * @brief < operator compares only value not state
 	 */
@@ -50,16 +66,6 @@ struct Sortable
 	[[nodiscard]] bool operator==(const Sortable& other) const noexcept
 	{
 		return value == other.value;
-	}
-
-	/**
-	 * @brief = operator to asign value, does not change states
-	 *
-	 */
-	Sortable& operator=(int other) noexcept
-	{
-		value = other;
-		return *this;
 	}
 };
 
@@ -82,6 +88,20 @@ public:
 	{
 		data.resize(elements);
 		std::iota(data.begin(), data.end(), 1);
+	}
+
+	/**
+	 * @brief Construct a new Sortable Collection object
+	 *
+	 * @param elements list of elements to use
+	 */
+	explicit SortableCollection(std::initializer_list<int> elements)
+	{
+		data.reserve(elements.size());
+		for(int i : elements)
+		{
+			data.emplace_back(i);
+		}
 	}
 
 	constexpr explicit SortableCollection() noexcept = delete;
@@ -193,6 +213,15 @@ public:
 	[[nodiscard]] bool operator!=(const sortvis::SortableCollection& other) const
 	{
 		return data != other.data;
+	}
+
+	/**
+	 * @param other Collection to compare to
+	 * @return true if Collection == other Collection
+	 */
+	[[nodiscard]] bool operator==(const sortvis::SortableCollection& other) const
+	{
+		return data == other.data;
 	}
 };
 } // namespace sortvis
