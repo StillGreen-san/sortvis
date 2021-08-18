@@ -53,11 +53,39 @@ struct Sortable
 	}
 
 	/**
+	 * @brief = operator to asign accessState
+	 *
+	 */
+	Sortable& operator=(AccessState state) noexcept
+	{
+		accessState = state;
+		return *this;
+	}
+
+	/**
+	 * @brief = operator to asign sortState
+	 *
+	 */
+	Sortable& operator=(SortState state) noexcept
+	{
+		sortState = state;
+		return *this;
+	}
+
+	/**
 	 * @brief < operator compares only value not state
 	 */
 	[[nodiscard]] bool operator<(const Sortable& other) const noexcept
 	{
 		return value < other.value;
+	}
+
+	/**
+	 * @brief > operator compares only value not state
+	 */
+	[[nodiscard]] bool operator>(const Sortable& other) const noexcept
+	{
+		return value > other.value;
 	}
 
 	/**
@@ -68,6 +96,10 @@ struct Sortable
 		return value == other.value;
 	}
 };
+
+template<typename T>
+concept SortableState =
+    std::same_as<T, sortvis::Sortable::AccessState> || std::same_as<T, sortvis::Sortable::SortState>;
 
 /**
  * @brief A Collection of Sortables with additional functionality
@@ -147,6 +179,21 @@ public:
 	}
 
 	/**
+	 * @brief compares both indicies with operator >,
+	 * sets AccessState of Sortables to Read
+	 *
+	 * @param lhs left index into data
+	 * @param rhs right index into data
+	 * @return true if data[lhs] > data[rhs]
+	 */
+	bool greater(size_t lhs, size_t rhs) noexcept
+	{
+		data[lhs].accessState = sortvis::Sortable::AccessState::Read;
+		data[rhs].accessState = sortvis::Sortable::AccessState::Read;
+		return data[lhs] > data[rhs];
+	}
+
+	/**
 	 * @brief swaps Sortables at indices,
 	 * sets AccessState of Sortables to Write
 	 *
@@ -161,15 +208,30 @@ public:
 	}
 
 	/**
-	 * @brief sets AccessState of Sortables to None
+	 * @brief gets Value at idx,
+	 * sets AccessState of Sortable to Read
 	 *
-	 * @param lhs left index into data
-	 * @param rhs right index into data
+	 * @param idx
+	 * @return int
 	 */
-	void none(size_t lhs, size_t rhs) noexcept
+	[[nodiscard]] int get(size_t idx) noexcept
 	{
-		data[lhs].accessState = sortvis::Sortable::AccessState::None;
-		data[rhs].accessState = sortvis::Sortable::AccessState::None;
+		data[idx].accessState = sortvis::Sortable::AccessState::Read;
+		return data[idx].value;
+	}
+
+	/**
+	 * @brief Sets the AccessState of all Sortables to state
+	 *
+	 * @tparam STATE sortvis::SortableState
+	 * @tparam IDX... std::unsigned_integral
+	 * @param state state to set
+	 * @param idx... indices to set
+	 */
+	template<sortvis::SortableState STATE, std::unsigned_integral... IDX>
+	void state(STATE state, IDX... idx) noexcept // TODO have IDX be size_t to reduce instanciations?
+	{
+		((data[idx] = state), ...);
 	}
 
 	/**
