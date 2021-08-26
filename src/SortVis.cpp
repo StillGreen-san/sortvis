@@ -11,8 +11,7 @@ int main()
 	try
 	{
 		sortvis::SorterCollection sorters(
-			ELEMENTS_TO_SORT, {sortvis::algorithms::bubble/*, sortvis::algorithms::quick, sortvis::algorithms::shell,
-					sortvis::algorithms::heap, sortvis::algorithms::insertion, sortvis::algorithms::selection*/});
+		    ELEMENTS_TO_SORT, {sortvis::algorithms::bubble, sortvis::algorithms::insertion});
 
 		while(!sorters.allHaveFinished())
 		{

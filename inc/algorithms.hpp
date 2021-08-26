@@ -63,26 +63,27 @@ cppcoro::generator<const int> heap(std::shared_ptr<sortvis::SortableCollection> 
 
 cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection> data);
 
-cppcoro::generator<const int> insertion(std::shared_ptr<sortvis::SortableCollection> data);
-// {
-// 	const size_t len = data->size() - 1;
-// 	size_t i = 1;
+cppcoro::generator<const int> insertion(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	const size_t len = data->size();
 
-// 	while(i < len)
-// 	{
-// 		size_t j = i;
-// 		while(j > 0)
-// 		{
-// 			bool greater = data->greater(j-1, j);
-// 			co_yield COMP_MAGIC_VALUE;
-// 			if(!greater) break;
+	for(size_t i = 1; i < len; ++i)
+	{
+		for(size_t j = i; j > 0; --j)
+		{
+			bool greater = data->greater(j - 1, j);
+			co_yield COMP_MAGIC_VALUE;
+			data->state(sortvis::Sortable::AccessState::None, j - 1, j);
 
-// 			swap A[j] and A[j-1]
-// 			j ← j - 1
-// 		}
-// 		i ← i + 1
-// 	}
-// }
+			if(!greater)
+				break;
+
+			data->swap(j - 1, j);
+			co_yield SWAP_MAGIC_VALUE;
+			data->state(sortvis::Sortable::AccessState::None, j - 1, j);
+		}
+	}
+}
 
 cppcoro::generator<const int> selection(std::shared_ptr<sortvis::SortableCollection> data);
 } // namespace sortvis::algorithms
