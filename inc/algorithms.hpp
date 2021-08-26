@@ -61,7 +61,32 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 
 cppcoro::generator<const int> heap(std::shared_ptr<sortvis::SortableCollection> data);
 
-cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection> data);
+cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	constexpr size_t gaps[] = {701, 301, 132, 57, 23, 10, 4, 1};
+
+	const size_t len = data->size();
+
+	for(size_t gap : gaps)
+	{
+		for(size_t i = gap; i < len; ++i)
+		{
+			for(size_t j = i; j >= gap; j -= gap)
+			{
+				bool greater = data->greater(j - gap, j);
+				co_yield COMP_MAGIC_VALUE;
+				data->state(sortvis::Sortable::AccessState::None, j - gap, j);
+
+				if(!greater)
+					break;
+
+				data->swap(j - gap, j);
+				co_yield SWAP_MAGIC_VALUE;
+				data->state(sortvis::Sortable::AccessState::None, j - gap, j);
+			}
+		}
+	}
+}
 
 cppcoro::generator<const int> insertion(std::shared_ptr<sortvis::SortableCollection> data)
 {
