@@ -114,5 +114,34 @@ cppcoro::generator<const int> insertion(std::shared_ptr<sortvis::SortableCollect
 	}
 }
 
-cppcoro::generator<const int> selection(std::shared_ptr<sortvis::SortableCollection> data);
+cppcoro::generator<const int> selection(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	const size_t len = data->size();
+
+	co_yield INIT_MAGIC_VALUE;
+
+	for(size_t i = 0; i < len - 1; ++i)
+	{
+		size_t jMin = i;
+
+		for(size_t j = i + 1; j < len; ++j)
+		{
+			bool less = data->less(j, jMin);
+			co_yield COMP_MAGIC_VALUE;
+			data->state(sortvis::Sortable::AccessState::None, j - 1, j);
+
+			if(less)
+			{
+				jMin = j;
+			}
+		}
+
+		if(jMin != i)
+		{
+			data->swap(i, jMin);
+			co_yield SWAP_MAGIC_VALUE;
+			data->state(sortvis::Sortable::AccessState::None, i, jMin);
+		}
+	}
+}
 } // namespace sortvis::algorithms

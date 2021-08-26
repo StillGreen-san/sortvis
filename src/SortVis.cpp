@@ -10,8 +10,9 @@ int main()
 {
 	try
 	{
-		sortvis::SorterCollection sorters(ELEMENTS_TO_SORT,
-		    {sortvis::algorithms::bubble, sortvis::algorithms::insertion, sortvis::algorithms::shell});
+		sortvis::SorterCollection sorters(
+		    ELEMENTS_TO_SORT, {sortvis::algorithms::bubble, sortvis::algorithms::insertion, sortvis::algorithms::shell,
+		                          sortvis::algorithms::selection});
 
 		while(!sorters.allHaveFinished())
 		{

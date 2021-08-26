@@ -62,3 +62,15 @@ TEST_CASE("shell")
 		CHECK(asc.data() == SC_ASC);
 	}
 }
+
+TEST_CASE("selection")
+{
+	for(const sortvis::SortableCollection* sc_ptr : SC_ARR)
+	{
+		sortvis::Sorter asc(*sc_ptr, sortvis::algorithms::selection);
+
+		while(!asc.advance()) {}
+
+		CHECK(asc.data() == SC_ASC);
+	}
+}
