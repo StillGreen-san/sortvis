@@ -32,6 +32,20 @@ public:
 	    colct{std::make_shared<sortvis::SortableCollection>(datavec)}, gen{generator(colct)}, it{gen.begin()},
 	    end{gen.end()}
 	{
+		if(hasFinished())
+		{
+			throw sortvis::InitFailureException("Initialization of SorterAlgorithm Failed! Sorter finished early!");
+		}
+		if(*it != sortvis::algorithms::INIT_MAGIC_VALUE)
+		{
+			throw sortvis::InitFailureException(
+			    "Initialization of SorterAlgorithm Failed! Sorter returned unexpected Initial-value!");
+		}
+		if(*colct != datavec)
+		{
+			throw sortvis::InitFailureException(
+			    "Initialization of SorterAlgorithm Failed! Sorter Data does not match InitialState Data!");
+		}
 	}
 
 	// TODO add custom copy constructors (defaults break with cppcoro::generator)
@@ -95,7 +109,7 @@ class SorterCollection
 private:
 	std::vector<sortvis::Sorter> sorters;
 	sortvis::SortableCollection initialState;
-	bool allFinished = true;
+	bool allFinished = false;
 
 public:
 	/**
@@ -111,12 +125,6 @@ public:
 		for(sortvis::SorterAlgorithm algo : algorithms)
 		{
 			sorters.emplace_back(initialState, algo);
-			allFinished &= sorters.back().hasFinished();
-			if(sorters.back().data() != initialState)
-			{
-				throw sortvis::InitFailureException(
-				    "Initialization of SorterAlgorithm Failed! Sorter Data does not match InitialState Data!");
-			}
 		}
 	}
 

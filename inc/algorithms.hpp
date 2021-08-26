@@ -67,6 +67,8 @@ cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection>
 
 	const size_t len = data->size();
 
+	co_yield INIT_MAGIC_VALUE;
+
 	for(size_t gap : gaps)
 	{
 		for(size_t i = gap; i < len; ++i)
@@ -91,6 +93,8 @@ cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection>
 cppcoro::generator<const int> insertion(std::shared_ptr<sortvis::SortableCollection> data)
 {
 	const size_t len = data->size();
+
+	co_yield INIT_MAGIC_VALUE;
 
 	for(size_t i = 1; i < len; ++i)
 	{

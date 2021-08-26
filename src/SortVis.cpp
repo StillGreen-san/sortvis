@@ -24,10 +24,10 @@ int main()
 	}
 	catch(sortvis::InitFailureException& e)
 	{
-		std::cerr << e.what() << std::endl;
+		std::cerr << "[InitFailureException] " << e.what() << std::endl;
 	}
 	catch(...)
 	{
-		std::cerr << "UNKOWN EXCEPTION!" << std::endl;
+		std::cerr << "[UNKOWN_EXCEPTION] !" << std::endl;
 	}
 }
