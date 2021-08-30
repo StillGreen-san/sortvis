@@ -6,6 +6,7 @@
 
 #include <exception>
 #include <memory>
+#include <stack>
 
 namespace sortvis
 {
@@ -57,7 +58,56 @@ cppcoro::generator<const int> bubble(std::shared_ptr<sortvis::SortableCollection
 	} while(changed);
 }
 
-cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection> data);
+cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	std::stack<std::pair<size_t, size_t>> stack;
+
+	size_t start = 0;
+	size_t end = data->size() - 1;
+
+	stack.push(std::make_pair(start, end));
+
+	co_yield INIT_MAGIC_VALUE;
+
+	while(!stack.empty())
+	{
+		start = stack.top().first;
+		end = stack.top().second;
+		stack.pop();
+
+		size_t pivot = start;
+
+		for(size_t i = start; i < end; i++)
+		{
+			const bool greater = data->greater(i, end);
+			co_yield COMP_MAGIC_VALUE;
+			data->state(sortvis::Sortable::AccessState::None, i, end);
+
+			if(!greater)
+			{
+				data->swap(i, pivot);
+				co_yield SWAP_MAGIC_VALUE;
+				data->state(sortvis::Sortable::AccessState::None, i, pivot);
+
+				pivot++;
+			}
+		}
+
+		data->swap(pivot, end);
+		co_yield SWAP_MAGIC_VALUE;
+		data->state(sortvis::Sortable::AccessState::None, pivot, end);
+
+		if(pivot - 1 > start)
+		{
+			stack.push(std::make_pair(start, pivot - 1));
+		}
+
+		if(pivot + 1 < end)
+		{
+			stack.push(std::make_pair(pivot + 1, end));
+		}
+	}
+}
 
 cppcoro::generator<const int> heap(std::shared_ptr<sortvis::SortableCollection> data);
 
