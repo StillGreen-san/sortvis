@@ -109,7 +109,105 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 	}
 }
 
-cppcoro::generator<const int> heap(std::shared_ptr<sortvis::SortableCollection> data);
+namespace detail
+{
+size_t iParent(size_t i)
+{
+	return (i - 1) / 2;
+}
+size_t iLeftChild(size_t i)
+{
+	return (2 * i) + 1;
+}
+size_t iRightChild(size_t i)
+{
+	return (2 * i) + 2;
+}
+
+cppcoro::generator<const int> siftDown(std::shared_ptr<sortvis::SortableCollection> data, size_t start, size_t end)
+{
+	size_t root = start;
+
+	while(iLeftChild(root) <= end)
+	{
+		size_t child = iLeftChild(root);
+		size_t swap = root;
+
+		bool isLess = data->less(swap, child);
+		co_yield COMP_MAGIC_VALUE;
+		data->state(sortvis::Sortable::AccessState::None, swap, child);
+
+		if(isLess)
+		{
+			swap = child;
+		}
+		if(child + 1 <= end)
+		{
+			isLess = data->less(swap, child + 1);
+			co_yield COMP_MAGIC_VALUE;
+			data->state(sortvis::Sortable::AccessState::None, swap, child + 1);
+
+			if(isLess)
+			{
+				swap = child + 1;
+			}
+		}
+		if(swap == root)
+		{
+			break;
+		}
+
+		data->swap(root, swap);
+		co_yield SWAP_MAGIC_VALUE;
+		data->state(sortvis::Sortable::AccessState::None, root, swap);
+
+		root = swap;
+	}
+}
+
+cppcoro::generator<const int> heapify(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	size_t start = iParent(data->size() - 1);
+
+	while(start != -1)
+	{
+		cppcoro::generator<const int> generator = siftDown(data, start, data->size() - 1);
+		for(const int magicValue : generator)
+		{
+			co_yield magicValue;
+		}
+		--start;
+	}
+}
+} // namespace detail
+
+cppcoro::generator<const int> heap(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	cppcoro::generator<const int> heapGenerator = detail::heapify(data);
+	size_t end = data->size() - 1;
+
+	co_yield INIT_MAGIC_VALUE;
+
+	for(const int magicValue : heapGenerator)
+	{
+		co_yield magicValue;
+	}
+
+	while(end > 0)
+	{
+		data->swap(0, end);
+		co_yield SWAP_MAGIC_VALUE;
+		data->state(sortvis::Sortable::AccessState::None, size_t(0), end);
+
+		end = end - 1;
+
+		cppcoro::generator<const int> shiftGenerator = detail::siftDown(data, 0, end);
+		for(const int magicValue : shiftGenerator)
+		{
+			co_yield magicValue;
+		}
+	}
+}
 
 cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection> data)
 {

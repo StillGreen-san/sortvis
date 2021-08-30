@@ -86,3 +86,15 @@ TEST_CASE("quick")
 		CHECK(asc.data() == SC_ASC);
 	}
 }
+
+TEST_CASE("heap")
+{
+	for(const sortvis::SortableCollection* sc_ptr : SC_ARR)
+	{
+		sortvis::Sorter asc(*sc_ptr, sortvis::algorithms::heap);
+
+		while(!asc.advance()) {}
+
+		CHECK(asc.data() == SC_ASC);
+	}
+}
