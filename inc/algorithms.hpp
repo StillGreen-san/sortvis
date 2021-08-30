@@ -97,7 +97,7 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 		co_yield SWAP_MAGIC_VALUE;
 		data->state(sortvis::Sortable::AccessState::None, pivot, end);
 
-		if(pivot - 1 > start)
+		if(pivot > 0 && pivot - 1 > start)
 		{
 			stack.push(std::make_pair(start, pivot - 1));
 		}

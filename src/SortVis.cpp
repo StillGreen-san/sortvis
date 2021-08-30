@@ -12,7 +12,7 @@ int main()
 	{
 		sortvis::SorterCollection sorters(
 		    ELEMENTS_TO_SORT, {sortvis::algorithms::bubble, sortvis::algorithms::insertion, sortvis::algorithms::shell,
-		                          sortvis::algorithms::selection});
+		                          sortvis::algorithms::selection, sortvis::algorithms::quick});
 
 		while(!sorters.allHaveFinished())
 		{
