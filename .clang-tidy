@@ -10,7 +10,9 @@ Checks: >
   -fuchsia-overloaded-operator,
   -google-readability-todo,
   -modernize-use-trailing-return-type,
-  -altera-struct-pack-align
+  -altera-struct-pack-align,
+  -readability-uppercase-literal-suffix,
+  -hicpp-uppercase-literal-suffix
 WarningsAsErrors: 'true'
 CheckOptions:
   - key: readability-implicit-bool-conversion.AllowPointerConditions
