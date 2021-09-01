@@ -17,6 +17,7 @@ add_compile_definitions( _SILENCE_CLANG_COROUTINE_MESSAGE )
 find_package( imgui CONFIG REQUIRED )
 find_package( SFML COMPONENTS system window graphics CONFIG REQUIRED )
 find_package( ImGui-SFML CONFIG REQUIRED )
+find_package( implot CONFIG REQUIRED )
 
 find_package( Catch2 CONFIG REQUIRED )
 
@@ -53,5 +54,5 @@ target_compile_features( ${TARGET_TEST} PRIVATE cxx_std_20 )
 
 add_executable( ${TARGET_SFML} ${SOURCES_SFML} )
 target_include_directories( ${TARGET_SFML} PRIVATE ${INC_DIR} )
-target_link_libraries( ${TARGET_SFML} PRIVATE cppcoro sfml-system sfml-graphics sfml-window ImGui-SFML::ImGui-SFML imgui::imgui )
+target_link_libraries( ${TARGET_SFML} PRIVATE cppcoro sfml-system sfml-graphics sfml-window ImGui-SFML::ImGui-SFML imgui::imgui implot::implot )
 target_compile_features( ${TARGET_SFML} PRIVATE cxx_std_20 )
