@@ -229,7 +229,8 @@ public:
 	 * @param idx... indices to set
 	 */
 	template<sortvis::SortableState STATE, std::unsigned_integral... IDX>
-	void state(STATE state, IDX... idx) noexcept // TODO have IDX be size_t to reduce instanciations?
+	void state(
+	    STATE state, IDX... idx) noexcept // TODO have IDX be size_t to reduce instanciations / converison errors?
 	{
 		((data[idx] = state), ...);
 	}

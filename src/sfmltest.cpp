@@ -16,13 +16,56 @@
 constexpr unsigned WINDOW_WIDTH = 1280;
 constexpr unsigned WINDOW_HEIGHT = 800;
 
-ImPlotPoint valueGetter(void* data, int idx)
+const char* LABELS[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i",
+    "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
+
+ImVec4 fromRGB(uint32_t rgb)
 {
-	// sortvis::SortableCollection* sortables = reinterpret_cast<sortvis::SortableCollection*>(data);
-	const sortvis::Sortable& sortable = reinterpret_cast<sortvis::SortableCollection*>(data)->begin()[idx];
-	// return {static_cast<double>(idx), static_cast<double>(sortables->begin()[idx].value)};
-	// multicolor with multiple bars?
-	return {static_cast<double>(idx), static_cast<double>(sortable.value)};
+	return {
+	    ((rgb & 0xFF0000) >> 16) / 255.0f, ((rgb & 0x00FF00) >> 8) / 255.0f, ((rgb & 0x0000FF) >> 0) / 255.0f, 1.0f};
+}
+
+constexpr uint32_t ROYAL_BLUE = 0x4169E1;
+constexpr uint32_t FOREST_GREEN = 0x228B22;
+constexpr uint32_t SPRING_GREEN = 0x228B22;
+constexpr uint32_t GOLDEN_ROD = 0xDAA520;
+constexpr uint32_t FIRE_BRICK = 0xB22222;
+
+void setSortableFillStyle(const sortvis::Sortable& sortable)
+{
+	using AccessState = sortvis::Sortable::AccessState;
+	using SortState = sortvis::Sortable::SortState;
+
+	if(sortable.accessState != AccessState::None)
+	{
+		switch(sortable.accessState)
+		{
+		case AccessState::Write:
+			ImPlot::SetNextFillStyle(fromRGB(FIRE_BRICK));
+			break;
+		case AccessState::Read:
+			ImPlot::SetNextFillStyle(fromRGB(GOLDEN_ROD));
+			break;
+		case AccessState::None:
+			ImPlot::SetNextFillStyle(fromRGB(ROYAL_BLUE));
+			break;
+		}
+	}
+	else
+	{
+		switch(sortable.sortState)
+		{
+		case SortState::Full:
+			ImPlot::SetNextFillStyle(fromRGB(FOREST_GREEN));
+			break;
+		case SortState::Partial:
+			ImPlot::SetNextFillStyle(fromRGB(SPRING_GREEN));
+			break;
+		case SortState::None:
+			ImPlot::SetNextFillStyle(fromRGB(ROYAL_BLUE));
+			break;
+		}
+	}
 }
 
 int main()
@@ -36,6 +79,10 @@ int main()
 
 	sortvis::SortableCollection sortables(8);
 	sortables.randomize();
+	sortables.less(0, 2);
+	sortables.swap(1, 3);
+	sortables.state(sortvis::Sortable::SortState::Partial, size_t(5));
+	sortables.state(sortvis::Sortable::SortState::Full, size_t(6));
 
 	sf::Clock deltaClock;
 	while(window.isOpen())
@@ -51,6 +98,8 @@ int main()
 			}
 		}
 
+		const char** label = LABELS;
+
 		ImGui::SFML::Update(window, deltaClock.restart());
 
 		constexpr auto plotFlags = static_cast<ImPlotFlags_>(ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMousePos);
@@ -60,14 +109,16 @@ int main()
 		constexpr auto windowFlags =
 		    static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);
 
-		auto MyBars = [&](const char* title_id, const char* label_id)
+		auto MyBars = [&](const char* title_id, const char* /*label_id*/)
 		{
 			if(ImPlot::BeginPlot(title_id, "index", "value", ImVec2(0, 0), plotFlags, axisFlagsX, axisFlagsY))
 			{
-				// ImPlot::PlotBars(label_id, &sortables.begin()->value, static_cast<int>(sortables.size()), 1.0, 0.0,
-				// 0, sizeof(sortvis::Sortable));
-				ImPlot::PlotBarsG(
-				    label_id, valueGetter, static_cast<void*>(&sortables), static_cast<int>(sortables.size()), 1.0, 0);
+				double shift = 0.0;
+				for(const sortvis::Sortable& sortable : sortables)
+				{
+					setSortableFillStyle(sortable);
+					ImPlot::PlotBars(*label++, &sortable.value, 1, 1.0, shift++);
+				}
 				ImPlot::EndPlot();
 			}
 		};
