@@ -16,9 +16,6 @@
 constexpr unsigned WINDOW_WIDTH = 1280;
 constexpr unsigned WINDOW_HEIGHT = 800;
 
-const char* LABELS[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i",
-    "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
-
 ImVec4 fromRGB(uint32_t rgb)
 {
 	return {
@@ -27,46 +24,28 @@ ImVec4 fromRGB(uint32_t rgb)
 
 constexpr uint32_t ROYAL_BLUE = 0x4169E1;
 constexpr uint32_t FOREST_GREEN = 0x228B22;
-constexpr uint32_t SPRING_GREEN = 0x228B22;
+constexpr uint32_t SPRING_GREEN = 0x00FF7F;
 constexpr uint32_t GOLDEN_ROD = 0xDAA520;
 constexpr uint32_t FIRE_BRICK = 0xB22222;
 
-void setSortableFillStyle(const sortvis::Sortable& sortable)
+template<auto STATE_A, auto STATE_B = STATE_A>
+requires sortvis::SortableState<decltype(STATE_A)> && sortvis::SortableState<decltype(STATE_B)> ImPlotPoint
+genericGetter(void* data, int idx)
 {
-	using AccessState = sortvis::Sortable::AccessState;
-	using SortState = sortvis::Sortable::SortState;
-
-	if(sortable.accessState != AccessState::None)
+	const auto& collection = *static_cast<sortvis::SortableCollection*>(data);
+	const auto& element = collection.begin()[idx];
+	if(element == STATE_A && element == STATE_B)
 	{
-		switch(sortable.accessState)
-		{
-		case AccessState::Write:
-			ImPlot::SetNextFillStyle(fromRGB(FIRE_BRICK));
-			break;
-		case AccessState::Read:
-			ImPlot::SetNextFillStyle(fromRGB(GOLDEN_ROD));
-			break;
-		case AccessState::None:
-			ImPlot::SetNextFillStyle(fromRGB(ROYAL_BLUE));
-			break;
-		}
+		return ImPlotPoint(idx, element.value);
 	}
-	else
-	{
-		switch(sortable.sortState)
-		{
-		case SortState::Full:
-			ImPlot::SetNextFillStyle(fromRGB(FOREST_GREEN));
-			break;
-		case SortState::Partial:
-			ImPlot::SetNextFillStyle(fromRGB(SPRING_GREEN));
-			break;
-		case SortState::None:
-			ImPlot::SetNextFillStyle(fromRGB(ROYAL_BLUE));
-			break;
-		}
-	}
+	return ImPlotPoint(0, 0);
 }
+constexpr auto writeGetter = genericGetter<sortvis::Sortable::AccessState::Write>;
+constexpr auto readGetter = genericGetter<sortvis::Sortable::AccessState::Read>;
+constexpr auto fullyGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Full>;
+constexpr auto partialGetter =
+    genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Partial>;
+constexpr auto noneGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::None>;
 
 int main()
 {
@@ -98,14 +77,14 @@ int main()
 			}
 		}
 
-		const char** label = LABELS;
-
 		ImGui::SFML::Update(window, deltaClock.restart());
 
-		constexpr auto plotFlags = static_cast<ImPlotFlags_>(ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMousePos);
-		constexpr auto axisFlagsX = static_cast<ImPlotAxisFlags_>(
-		    ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks);
-		constexpr auto axisFlagsY = static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit);
+		constexpr auto plotFlags =
+		    static_cast<ImPlotFlags_>(ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMousePos | ImPlotFlags_NoHighlight);
+		constexpr auto axisFlagsX =
+		    static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoGridLines |
+		                                  ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoLabel);
+		constexpr auto axisFlagsY = static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoLabel);
 		constexpr auto windowFlags =
 		    static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);
 
@@ -113,12 +92,18 @@ int main()
 		{
 			if(ImPlot::BeginPlot(title_id, "index", "value", ImVec2(0, 0), plotFlags, axisFlagsX, axisFlagsY))
 			{
-				double shift = 0.0;
-				for(const sortvis::Sortable& sortable : sortables)
-				{
-					setSortableFillStyle(sortable);
-					ImPlot::PlotBars(*label++, &sortable.value, 1, 1.0, shift++);
-				}
+				ImPlot::SetLegendLocation(
+				    ImPlotLocation_::ImPlotLocation_South, ImPlotOrientation_::ImPlotOrientation_Horizontal, true);
+				ImPlot::SetNextFillStyle(fromRGB(FIRE_BRICK));
+				ImPlot::PlotBarsG("write", writeGetter, &sortables, (int)sortables.size(), 1.0);
+				ImPlot::SetNextFillStyle(fromRGB(GOLDEN_ROD));
+				ImPlot::PlotBarsG("read", readGetter, &sortables, (int)sortables.size(), 1.0);
+				ImPlot::SetNextFillStyle(fromRGB(FOREST_GREEN));
+				ImPlot::PlotBarsG("sorted", fullyGetter, &sortables, (int)sortables.size(), 1.0);
+				ImPlot::SetNextFillStyle(fromRGB(SPRING_GREEN));
+				ImPlot::PlotBarsG("partial", partialGetter, &sortables, (int)sortables.size(), 1.0);
+				ImPlot::SetNextFillStyle(fromRGB(ROYAL_BLUE));
+				ImPlot::PlotBarsG("none", noneGetter, &sortables, (int)sortables.size(), 1.0);
 				ImPlot::EndPlot();
 			}
 		};

@@ -95,6 +95,22 @@ struct Sortable
 	{
 		return value == other.value;
 	}
+
+	/**
+	 * @brief == operator compares SortState
+	 */
+	[[nodiscard]] bool operator==(const SortState other) const noexcept
+	{
+		return sortState == other;
+	}
+
+	/**
+	 * @brief == operator compares AccessState
+	 */
+	[[nodiscard]] bool operator==(const AccessState other) const noexcept
+	{
+		return accessState == other;
+	}
 };
 
 template<typename T>
