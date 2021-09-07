@@ -66,14 +66,18 @@ public:
 	}
 
 	/**
-	 * @brief advances the SorterAlgorithm by one step
+	 * @brief advances the SorterAlgorithm by one step if not finished
 	 *
 	 * @return hasFinished()
 	 */
 	bool advance()
 	{
-		++it;
-		return hasFinished();
+		if(!hasFinished())
+		{
+			++it;
+			return hasFinished();
+		}
+		return true;
 	}
 
 	/**
@@ -111,6 +115,21 @@ private:
 	sortvis::SortableCollection initialState;
 	bool allFinished = false;
 
+	/**
+	 * @brief reset all sorters with initialState
+	 *
+	 * @return allHaveFinished()
+	 */
+	bool reset_()
+	{
+		allFinished = true;
+		for(sortvis::Sorter& sorter : sorters)
+		{
+			allFinished &= sorter.reset(initialState);
+		}
+		return allHaveFinished();
+	}
+
 public:
 	/**
 	 * @brief Construct a new Sorter Collection object
@@ -129,12 +148,30 @@ public:
 	}
 
 	/**
+	 * @brief Construct a new Sorter Collection object
+	 *
+	 * @param elements the initial state to use
+	 * @param algorithms a list of SorterAlgorithms for the Sorters to use
+	 */
+	SorterCollection(
+	    const sortvis::SortableCollection& elements, std::initializer_list<sortvis::SorterAlgorithm> algorithms) :
+	    initialState(elements)
+	{
+		for(sortvis::SorterAlgorithm algo : algorithms)
+		{
+			sorters.emplace_back(initialState, algo);
+		}
+	}
+
+	/**
 	 * @brief returns true if all Sorters have finished sorting
 	 */
 	[[nodiscard]] bool allHaveFinished() const noexcept
 	{
 		return allFinished;
 	}
+
+	// TODO change return of function from allHaveFinished to !allHaveFinished (and other functions?)
 
 	/**
 	 * @brief advance all sorters by one step
@@ -152,19 +189,26 @@ public:
 	}
 
 	/**
-	 * @brief resets all Sorters with new randomized data
+	 * @brief resets all Sorters with their initial data
 	 *
 	 * @return allHaveFinished()
 	 */
 	bool reset()
 	{
-		allFinished = true;
 		initialState.randomize();
-		for(sortvis::Sorter& sorter : sorters)
-		{
-			allFinished &= sorter.reset(initialState);
-		}
-		return allHaveFinished();
+		return reset_();
+	}
+
+	/**
+	 * @brief resets all Sorters with elements
+	 *
+	 * @param elements the new initial state
+	 * @return allHaveFinished()
+	 */
+	bool reset(const sortvis::SortableCollection& elements)
+	{
+		initialState = elements;
+		return reset_();
 	}
 };
 } // namespace sortvis

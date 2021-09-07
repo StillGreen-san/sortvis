@@ -12,6 +12,7 @@
 #include <implot.h>
 
 #include "sortable.hpp"
+#include "sorter.hpp"
 
 constexpr unsigned WINDOW_WIDTH = 1280;
 constexpr unsigned WINDOW_HEIGHT = 800;
@@ -50,7 +51,8 @@ constexpr auto noneGetter = genericGetter<sortvis::Sortable::AccessState::None, 
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "ImGui + SFML == <3");
-	window.setVerticalSyncEnabled(true);
+	// window.setVerticalSyncEnabled(true);
+	window.setFramerateLimit(30);
 
 	ImGui::SFML::Init(window);
 	ImPlot::CreateContext();
@@ -63,7 +65,11 @@ int main()
 	sortables.state(sortvis::Sortable::SortState::Partial, size_t(5));
 	sortables.state(sortvis::Sortable::SortState::Full, size_t(6));
 
+	sortvis::SorterCollection sorters(
+	    sortables, {sortvis::algorithms::bubble, sortvis::algorithms::quick, sortvis::algorithms::shell});
+
 	sf::Clock deltaClock;
+	float advanceDelta = 0;
 	while(window.isOpen())
 	{
 		sf::Event event{sf::Event::Count, 0}; //! meaningless event init for tidy
@@ -77,10 +83,19 @@ int main()
 			}
 		}
 
-		ImGui::SFML::Update(window, deltaClock.restart());
+		sf::Time delta = deltaClock.restart();
+		advanceDelta += delta.asSeconds();
 
-		constexpr auto plotFlags =
-		    static_cast<ImPlotFlags_>(ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMousePos | ImPlotFlags_NoHighlight);
+		ImGui::SFML::Update(window, delta);
+
+		if(advanceDelta > 1.0f)
+		{
+			advanceDelta = 0.0f;
+			sorters.advance();
+		}
+
+		constexpr auto plotFlags = static_cast<ImPlotFlags_>(
+		    ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMousePos | ImPlotFlags_NoHighlight | ImPlotFlags_NoMenus);
 		constexpr auto axisFlagsX =
 		    static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoGridLines |
 		                                  ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoLabel);

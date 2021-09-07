@@ -243,10 +243,11 @@ public:
 	 * @tparam IDX... std::unsigned_integral
 	 * @param state state to set
 	 * @param idx... indices to set
+	 *
+	 * @todo have IDX be size_t to reduce instanciations / converison errors?
 	 */
 	template<sortvis::SortableState STATE, std::unsigned_integral... IDX>
-	void state(
-	    STATE state, IDX... idx) noexcept // TODO have IDX be size_t to reduce instanciations / converison errors?
+	void state(STATE state, IDX... idx) noexcept
 	{
 		((data[idx] = state), ...);
 	}
