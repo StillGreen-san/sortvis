@@ -58,7 +58,8 @@ int main()
 	ImPlot::CreateContext();
 	ImGui::GetIO().IniFilename = nullptr;
 
-	sortvis::SortableCollection sortables(32);
+	int elements = 32;
+	sortvis::SortableCollection sortables(elements);
 	sortables.randomize();
 
 	sortvis::SorterCollection sorters(
@@ -89,13 +90,10 @@ int main()
 		if(advanceDelta > advanceDelay)
 		{
 			advanceDelta -= advanceDelay;
-			if(sorters.allHaveFinished())
+			if(!sorters.allHaveFinished())
 			{
-				sortables.randomize();
-				sorters.reset(sortables);
-			}
-			else
 				sorters.advance();
+			}
 		}
 
 		constexpr auto plotFlags = static_cast<ImPlotFlags_>(
@@ -107,22 +105,36 @@ int main()
 		constexpr auto windowFlags =
 		    static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);
 
-		ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+		const ImVec2 windowSize = ImGui::GetMainViewport()->Size;
 
-		ImGui::Begin("Control Window", nullptr, ImGuiWindowFlags_NoDecoration);
-		ImGui::SetWindowPos(ImVec2(0, 0));
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGui::SetNextWindowSize(ImVec2(windowSize.x, 0));
+		ImGui::Begin("Control Window", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
 		ImGui::SliderFloat("advance delay", &advanceDelay, 0.05f, 0.75f);
-		ImVec2 controlSize = ImGui::GetWindowSize();
+		ImGui::SameLine();
+		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
+		ImGui::SliderInt("elements", &elements, 8, 128);
+		ImGui::SameLine();
+		if(ImGui::Button("reset sorters"))
+		{
+			sortables = sortvis::SortableCollection(elements);
+			sortables.randomize();
+			sorters.reset(sortables);
+		}
+		const ImVec2 controlSize = ImGui::GetWindowSize();
 		ImGui::End();
 
+		ImGui::SetNextWindowPos(ImVec2(0, controlSize.y));
+		ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y - controlSize.y));
 		ImGui::Begin("My Awesome Window", nullptr, windowFlags);
-		ImGui::SetWindowPos(ImVec2(0, controlSize.y));
-		ImGui::SetWindowSize(ImVec2(windowSize.x, windowSize.y - controlSize.y));
+
+		const ImVec2 plotSize((windowSize.x / 3) - 10, ((windowSize.y - controlSize.y) / 2) - 9);
 
 		int sorterNumber = 0;
 		for(const sortvis::Sorter& sorter : sorters)
 		{
-			if(ImPlot::BeginPlot(sorter.name(), "index", "value", ImVec2(0, 0), plotFlags, axisFlagsX, axisFlagsY))
+			if(ImPlot::BeginPlot(sorter.name(), "index", "value", plotSize, plotFlags, axisFlagsX, axisFlagsY))
 			{
 				ImPlot::SetLegendLocation(
 				    ImPlotLocation_::ImPlotLocation_South, ImPlotOrientation_::ImPlotOrientation_Horizontal, true);
