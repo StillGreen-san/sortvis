@@ -20,6 +20,7 @@ private:
 	cppcoro::generator<const int> gen;
 	cppcoro::generator<const int>::iterator it;
 	cppcoro::detail::generator_sentinel end;
+	sortvis::SorterAlgorithm algorithm;
 
 public:
 	/**
@@ -30,7 +31,7 @@ public:
 	 */
 	Sorter(const sortvis::SortableCollection& datavec, sortvis::SorterAlgorithm generator) :
 	    colct{std::make_shared<sortvis::SortableCollection>(datavec)}, gen{generator(colct)}, it{gen.begin()},
-	    end{gen.end()}
+	    end{gen.end()}, algorithm{generator}
 	{
 		if(hasFinished())
 		{
@@ -90,6 +91,7 @@ public:
 	bool reset(const sortvis::SortableCollection& dat)
 	{
 		colct->reset(dat);
+		gen = algorithm(colct);
 		it = gen.begin();
 		end = gen.end();
 		return hasFinished();
@@ -101,6 +103,14 @@ public:
 	const sortvis::SortableCollection& data() const noexcept
 	{
 		return *colct;
+	}
+
+	/**
+	 * @brief returns const char* with name of the algorithm used
+	 */
+	const char* name() const noexcept
+	{
+		return sortvis::getAlgorithmName(algorithm);
 	}
 };
 
@@ -209,6 +219,16 @@ public:
 	{
 		initialState = elements;
 		return reset_();
+	}
+
+	std::vector<sortvis::Sorter>::const_iterator begin() const noexcept
+	{
+		return sorters.begin();
+	}
+
+	std::vector<sortvis::Sorter>::const_iterator end() const noexcept
+	{
+		return sorters.end();
 	}
 };
 } // namespace sortvis

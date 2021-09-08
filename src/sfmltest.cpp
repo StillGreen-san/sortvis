@@ -58,18 +58,16 @@ int main()
 	ImPlot::CreateContext();
 	ImGui::GetIO().IniFilename = nullptr;
 
-	sortvis::SortableCollection sortables(8);
+	sortvis::SortableCollection sortables(32);
 	sortables.randomize();
-	sortables.less(0, 2);
-	sortables.swap(1, 3);
-	sortables.state(sortvis::Sortable::SortState::Partial, size_t(5));
-	sortables.state(sortvis::Sortable::SortState::Full, size_t(6));
 
 	sortvis::SorterCollection sorters(
-	    sortables, {sortvis::algorithms::bubble, sortvis::algorithms::quick, sortvis::algorithms::shell});
+	    sortables, {sortvis::algorithms::bubble, sortvis::algorithms::quick, sortvis::algorithms::shell,
+	                   sortvis::algorithms::heap, sortvis::algorithms::insertion, sortvis::algorithms::selection});
 
 	sf::Clock deltaClock;
 	float advanceDelta = 0;
+	float advanceDelay = 0.2f;
 	while(window.isOpen())
 	{
 		sf::Event event{sf::Event::Count, 0}; //! meaningless event init for tidy
@@ -88,10 +86,16 @@ int main()
 
 		ImGui::SFML::Update(window, delta);
 
-		if(advanceDelta > 1.0f)
+		if(advanceDelta > advanceDelay)
 		{
-			advanceDelta = 0.0f;
-			sorters.advance();
+			advanceDelta -= advanceDelay;
+			if(sorters.allHaveFinished())
+			{
+				sortables.randomize();
+				sorters.reset(sortables);
+			}
+			else
+				sorters.advance();
 		}
 
 		constexpr auto plotFlags = static_cast<ImPlotFlags_>(
@@ -103,34 +107,40 @@ int main()
 		constexpr auto windowFlags =
 		    static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);
 
-		auto MyBars = [&](const char* title_id, const char* /*label_id*/)
+		ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+
+		ImGui::Begin("Control Window", nullptr, ImGuiWindowFlags_NoDecoration);
+		ImGui::SetWindowPos(ImVec2(0, 0));
+		ImGui::SliderFloat("advance delay", &advanceDelay, 0.05f, 0.75f);
+		ImVec2 controlSize = ImGui::GetWindowSize();
+		ImGui::End();
+
+		ImGui::Begin("My Awesome Window", nullptr, windowFlags);
+		ImGui::SetWindowPos(ImVec2(0, controlSize.y));
+		ImGui::SetWindowSize(ImVec2(windowSize.x, windowSize.y - controlSize.y));
+
+		int sorterNumber = 0;
+		for(const sortvis::Sorter& sorter : sorters)
 		{
-			if(ImPlot::BeginPlot(title_id, "index", "value", ImVec2(0, 0), plotFlags, axisFlagsX, axisFlagsY))
+			if(ImPlot::BeginPlot(sorter.name(), "index", "value", ImVec2(0, 0), plotFlags, axisFlagsX, axisFlagsY))
 			{
 				ImPlot::SetLegendLocation(
 				    ImPlotLocation_::ImPlotLocation_South, ImPlotOrientation_::ImPlotOrientation_Horizontal, true);
 				ImPlot::SetNextFillStyle(fromRGB(FIRE_BRICK));
-				ImPlot::PlotBarsG("write", writeGetter, &sortables, (int)sortables.size(), 1.0);
+				ImPlot::PlotBarsG("write", writeGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
 				ImPlot::SetNextFillStyle(fromRGB(GOLDEN_ROD));
-				ImPlot::PlotBarsG("read", readGetter, &sortables, (int)sortables.size(), 1.0);
+				ImPlot::PlotBarsG("read", readGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
 				ImPlot::SetNextFillStyle(fromRGB(FOREST_GREEN));
-				ImPlot::PlotBarsG("sorted", fullyGetter, &sortables, (int)sortables.size(), 1.0);
+				ImPlot::PlotBarsG("sorted", fullyGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
 				ImPlot::SetNextFillStyle(fromRGB(SPRING_GREEN));
-				ImPlot::PlotBarsG("partial", partialGetter, &sortables, (int)sortables.size(), 1.0);
+				ImPlot::PlotBarsG("partial", partialGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
 				ImPlot::SetNextFillStyle(fromRGB(ROYAL_BLUE));
-				ImPlot::PlotBarsG("none", noneGetter, &sortables, (int)sortables.size(), 1.0);
+				ImPlot::PlotBarsG("none", noneGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
 				ImPlot::EndPlot();
 			}
-		};
-
-		ImGui::Begin("My Awesome Window", nullptr, windowFlags);
-		ImGui::SetWindowPos(ImVec2(0, 0));
-		ImGui::SetWindowSize(ImGui::GetMainViewport()->Size);
-
-		MyBars("Some Plot1", "Some Bars1");
-		ImGui::SameLine();
-		MyBars("Some Plot2", "Some Bars2");
-		MyBars("Some Plot3", "Some Bars3");
+			if(++sorterNumber % 3)
+				ImGui::SameLine();
+		}
 
 		ImGui::End();
 

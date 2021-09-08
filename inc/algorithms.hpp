@@ -293,3 +293,23 @@ cppcoro::generator<const int> selection(std::shared_ptr<sortvis::SortableCollect
 	}
 }
 } // namespace sortvis::algorithms
+
+namespace sortvis
+{
+const char* getAlgorithmName(SorterAlgorithm algorithm)
+{
+	if(algorithm == sortvis::algorithms::bubble)
+		return "Bubble Sort";
+	if(algorithm == sortvis::algorithms::heap)
+		return "Heap Sort";
+	if(algorithm == sortvis::algorithms::insertion)
+		return "Insertion Sort";
+	if(algorithm == sortvis::algorithms::selection)
+		return "Selection Sort";
+	if(algorithm == sortvis::algorithms::quick)
+		return "Quick Sort";
+	if(algorithm == sortvis::algorithms::shell)
+		return "Shell Sort";
+	return "UNKNOWN";
+}
+} // namespace sortvis
