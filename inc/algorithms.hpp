@@ -67,17 +67,14 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 {
 	std::stack<std::pair<size_t, size_t>> stack;
 
-	size_t start = 0;
-	size_t end = data->size() - 1;
-
-	stack.push(std::make_pair(start, end));
+	stack.push(std::make_pair(0, data->size() - 1));
 
 	co_yield INIT_MAGIC_VALUE;
 
 	while(!stack.empty())
 	{
-		start = stack.top().first;
-		end = stack.top().second;
+		const size_t start = stack.top().first;
+		const size_t end = stack.top().second;
 		stack.pop();
 
 		size_t pivot = start;
@@ -101,6 +98,7 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 		data->swap(pivot, end);
 		co_yield SWAP_MAGIC_VALUE;
 		data->state(sortvis::Sortable::AccessState::None, pivot, end);
+		data->state(sortvis::Sortable::SortState::Full, pivot);
 
 		if(pivot > 0 && pivot - 1 > start)
 		{
@@ -204,6 +202,7 @@ cppcoro::generator<const int> heap(std::shared_ptr<sortvis::SortableCollection> 
 		co_yield SWAP_MAGIC_VALUE;
 		data->state(sortvis::Sortable::AccessState::None, size_t(0), end);
 
+		data->state(sortvis::Sortable::SortState::Full, end);
 		end = end - 1;
 
 		cppcoro::generator<const int> shiftGenerator = detail::siftDown(data, 0, end);
@@ -212,6 +211,8 @@ cppcoro::generator<const int> heap(std::shared_ptr<sortvis::SortableCollection> 
 			co_yield magicValue;
 		}
 	}
+
+	data->state(sortvis::Sortable::SortState::Full, size_t(0));
 }
 
 cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection> data)
@@ -241,6 +242,11 @@ cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection>
 			}
 		}
 	}
+
+	for(size_t i = 0; i < len; ++i)
+	{
+		data->state(sortvis::Sortable::SortState::Full, i);
+	}
 }
 
 cppcoro::generator<const int> insertion(std::shared_ptr<sortvis::SortableCollection> data)
@@ -264,6 +270,11 @@ cppcoro::generator<const int> insertion(std::shared_ptr<sortvis::SortableCollect
 			co_yield SWAP_MAGIC_VALUE;
 			data->state(sortvis::Sortable::AccessState::None, j - 1, j);
 		}
+	}
+
+	for(size_t i = 0; i < len; ++i)
+	{
+		data->state(sortvis::Sortable::SortState::Full, i);
 	}
 }
 
@@ -295,7 +306,11 @@ cppcoro::generator<const int> selection(std::shared_ptr<sortvis::SortableCollect
 			co_yield SWAP_MAGIC_VALUE;
 			data->state(sortvis::Sortable::AccessState::None, i, jMin);
 		}
+
+		data->state(sortvis::Sortable::SortState::Full, i);
 	}
+
+	data->state(sortvis::Sortable::SortState::Full, len - 1);
 }
 } // namespace sortvis::algorithms
 

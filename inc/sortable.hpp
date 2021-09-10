@@ -218,6 +218,8 @@ public:
 	 */
 	void swap(size_t lhs, size_t rhs) noexcept
 	{
+		assert(data[lhs].sortState != sortvis::Sortable::SortState::Full);
+		assert(data[rhs].sortState != sortvis::Sortable::SortState::Full);
 		data[lhs].accessState = sortvis::Sortable::AccessState::Write;
 		data[rhs].accessState = sortvis::Sortable::AccessState::Write;
 		std::swap(data[lhs], data[rhs]);
