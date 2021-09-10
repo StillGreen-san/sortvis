@@ -69,6 +69,7 @@ int main()
 	sf::Clock deltaClock;
 	float advanceDelta = 0;
 	float advanceDelay = 0.2f;
+	bool autoReset = false;
 	while(window.isOpen())
 	{
 		sf::Event event{sf::Event::Count, 0}; //! meaningless event init for tidy
@@ -93,6 +94,11 @@ int main()
 			if(!sorters.allHaveFinished())
 			{
 				sorters.advance();
+			}
+			else if(autoReset)
+			{
+				sortables.randomize();
+				sorters.reset(sortables);
 			}
 		}
 
@@ -122,6 +128,8 @@ int main()
 			sortables.randomize();
 			sorters.reset(sortables);
 		}
+		ImGui::SameLine();
+		ImGui::Checkbox("auto reset", &autoReset);
 		const ImVec2 controlSize = ImGui::GetWindowSize();
 		ImGui::End();
 

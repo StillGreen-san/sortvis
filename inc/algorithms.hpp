@@ -56,6 +56,11 @@ cppcoro::generator<const int> bubble(std::shared_ptr<sortvis::SortableCollection
 		data->state(sortvis::Sortable::SortState::Full, n);
 		--n;
 	} while(changed);
+
+	for(size_t i = 0; i <= n; ++i)
+	{
+		data->state(sortvis::Sortable::SortState::Full, i);
+	}
 }
 
 cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection> data)
