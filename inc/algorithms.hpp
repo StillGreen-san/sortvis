@@ -100,14 +100,26 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 		data->state(sortvis::Sortable::AccessState::None, pivot, end);
 		data->state(sortvis::Sortable::SortState::Full, pivot);
 
+		bool pushed = false;
+
 		if(pivot > 0 && pivot - 1 > start)
 		{
 			stack.push(std::make_pair(start, pivot - 1));
+			pushed = true;
+		}
+		else
+		{
+			data->state(sortvis::Sortable::SortState::Full, start);
 		}
 
 		if(pivot + 1 < end)
 		{
 			stack.push(std::make_pair(pivot + 1, end));
+			pushed = true;
+		}
+		else
+		{
+			data->state(sortvis::Sortable::SortState::Full, end);
 		}
 	}
 }
@@ -292,7 +304,7 @@ cppcoro::generator<const int> selection(std::shared_ptr<sortvis::SortableCollect
 		{
 			bool less = data->less(j, jMin);
 			co_yield COMP_MAGIC_VALUE;
-			data->state(sortvis::Sortable::AccessState::None, j - 1, j);
+			data->state(sortvis::Sortable::AccessState::None, j, jMin);
 
 			if(less)
 			{

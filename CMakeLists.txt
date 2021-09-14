@@ -28,7 +28,7 @@ set( TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test )
 
 set( TARGET_MAIN ${PROJECT_NAME} )
 set( TARGET_TEST ${PROJECT_NAME}-test )
-set( TARGET_SFML sfmltest )
+set( TARGET_SFML sfmltrial )
 
 set( SOURCES_MAIN
 	${SRC_DIR}/${TARGET_MAIN}.cpp
