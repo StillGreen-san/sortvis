@@ -1,56 +1,11 @@
-#undef IMGUI_USE_WCHAR32 // fix for redef in imconfig
-
-#include "imgui.h" // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
-
-#include "imgui-SFML.h" // for ImGui::SFML::* functions and SFML-specific overloads
-
-#include <SFML/Graphics/CircleShape.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/System/Clock.hpp>
-#include <SFML/Window/Event.hpp>
-
-#include <implot.h>
-
-#include "sortable.hpp"
-#include "sorter.hpp"
-
-constexpr unsigned WINDOW_WIDTH = 1280;
-constexpr unsigned WINDOW_HEIGHT = 800;
-
-ImVec4 fromRGB(uint32_t rgb)
-{
-	return {
-	    ((rgb & 0xFF0000) >> 16) / 255.0f, ((rgb & 0x00FF00) >> 8) / 255.0f, ((rgb & 0x0000FF) >> 0) / 255.0f, 1.0f};
-}
-
-constexpr uint32_t ROYAL_BLUE = 0x4169E1;
-constexpr uint32_t FOREST_GREEN = 0x228B22;
-constexpr uint32_t SPRING_GREEN = 0x00FF7F;
-constexpr uint32_t GOLDEN_ROD = 0xDAA520;
-constexpr uint32_t FIRE_BRICK = 0xB22222;
-
-template<auto STATE_A, auto STATE_B = STATE_A>
-requires sortvis::SortableState<decltype(STATE_A)> && sortvis::SortableState<decltype(STATE_B)> ImPlotPoint
-genericGetter(void* data, int idx)
-{
-	const auto& collection = *static_cast<sortvis::SortableCollection*>(data);
-	const auto& element = collection.begin()[idx];
-	if(element == STATE_A && element == STATE_B)
-	{
-		return ImPlotPoint(idx, element.value);
-	}
-	return ImPlotPoint(0, 0);
-}
-constexpr auto writeGetter = genericGetter<sortvis::Sortable::AccessState::Write>;
-constexpr auto readGetter = genericGetter<sortvis::Sortable::AccessState::Read>;
-constexpr auto fullyGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Full>;
-constexpr auto partialGetter =
-    genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Partial>;
-constexpr auto noneGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::None>;
+#include "gui.hpp"
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "ImGui + SFML == <3");
+	sf::VideoMode windowvidmode = sf::VideoMode::getDesktopMode();
+	windowvidmode.height /= 2;
+	windowvidmode.width /= 2;
+	sf::RenderWindow window(windowvidmode, "Sorting Visualization");
 	// window.setVerticalSyncEnabled(true);
 	window.setFramerateLimit(30);
 
@@ -58,18 +13,8 @@ int main()
 	ImPlot::CreateContext();
 	ImGui::GetIO().IniFilename = nullptr;
 
-	int elements = 32;
-	sortvis::SortableCollection sortables(elements);
-	sortables.randomize();
+	sortvis::GUIData data;
 
-	sortvis::SorterCollection sorters(
-	    sortables, {sortvis::algorithms::bubble, sortvis::algorithms::quick, sortvis::algorithms::shell,
-	                   sortvis::algorithms::heap, sortvis::algorithms::insertion, sortvis::algorithms::selection});
-
-	sf::Clock deltaClock;
-	float advanceDelta = 0;
-	float advanceDelay = 0.2f;
-	bool autoReset = false;
 	while(window.isOpen())
 	{
 		sf::Event event{sf::Event::Count, 0}; //! meaningless event init for tidy
@@ -83,86 +28,12 @@ int main()
 			}
 		}
 
-		sf::Time delta = deltaClock.restart();
-		advanceDelta += delta.asSeconds();
+		data.update();
 
-		ImGui::SFML::Update(window, delta);
+		ImGui::SFML::Update(window, data.deltaTime);
 
-		if(advanceDelta > advanceDelay)
-		{
-			advanceDelta -= advanceDelay;
-			if(!sorters.allHaveFinished())
-			{
-				sorters.advance();
-			}
-			else if(autoReset)
-			{
-				sortables.randomize();
-				sorters.reset(sortables);
-			}
-		}
-
-		constexpr auto plotFlags = static_cast<ImPlotFlags_>(
-		    ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMousePos | ImPlotFlags_NoHighlight | ImPlotFlags_NoMenus);
-		constexpr auto axisFlagsX =
-		    static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoGridLines |
-		                                  ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoLabel);
-		constexpr auto axisFlagsY = static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoLabel);
-		constexpr auto windowFlags =
-		    static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);
-
-		const ImVec2 windowSize = ImGui::GetMainViewport()->Size;
-
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(ImVec2(windowSize.x, 0));
-		ImGui::Begin("Control Window", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
-		ImGui::SliderFloat("advance delay", &advanceDelay, 0.05f, 0.75f);
-		ImGui::SameLine();
-		ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
-		ImGui::SliderInt("elements", &elements, 8, 128);
-		ImGui::SameLine();
-		if(ImGui::Button("reset sorters"))
-		{
-			sortables = sortvis::SortableCollection(elements);
-			sortables.randomize();
-			sorters.reset(sortables);
-		}
-		ImGui::SameLine();
-		ImGui::Checkbox("auto reset", &autoReset);
-		const ImVec2 controlSize = ImGui::GetWindowSize();
-		ImGui::End();
-
-		ImGui::SetNextWindowPos(ImVec2(0, controlSize.y));
-		ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y - controlSize.y));
-		ImGui::Begin("My Awesome Window", nullptr, windowFlags);
-
-		const ImVec2 plotSize((windowSize.x / 3) - 10, ((windowSize.y - controlSize.y) / 2) - 9);
-
-		int sorterNumber = 0;
-		for(const sortvis::Sorter& sorter : sorters)
-		{
-			if(ImPlot::BeginPlot(sorter.name(), "index", "value", plotSize, plotFlags, axisFlagsX, axisFlagsY))
-			{
-				ImPlot::SetLegendLocation(
-				    ImPlotLocation_::ImPlotLocation_South, ImPlotOrientation_::ImPlotOrientation_Horizontal, true);
-				ImPlot::SetNextFillStyle(fromRGB(FIRE_BRICK));
-				ImPlot::PlotBarsG("write", writeGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
-				ImPlot::SetNextFillStyle(fromRGB(GOLDEN_ROD));
-				ImPlot::PlotBarsG("read", readGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
-				ImPlot::SetNextFillStyle(fromRGB(FOREST_GREEN));
-				ImPlot::PlotBarsG("sorted", fullyGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
-				ImPlot::SetNextFillStyle(fromRGB(SPRING_GREEN));
-				ImPlot::PlotBarsG("partial", partialGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
-				ImPlot::SetNextFillStyle(fromRGB(ROYAL_BLUE));
-				ImPlot::PlotBarsG("none", noneGetter, (void*)(&sorter.data()), (int)sortables.size(), 1.0);
-				ImPlot::EndPlot();
-			}
-			if(++sorterNumber % 3)
-				ImGui::SameLine();
-		}
-
-		ImGui::End();
+		sortvis::renderSettings(data);
+		sortvis::renderSorters(data);
 
 		window.clear();
 		ImGui::SFML::Render(window);

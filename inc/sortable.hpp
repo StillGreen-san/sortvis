@@ -132,10 +132,14 @@ public:
 	 *
 	 * @param elements number of elements of this collection, numbered [1-elements]
 	 */
-	explicit SortableCollection(size_t elements)
+	explicit SortableCollection(size_t elements, bool doRandomize = false)
 	{
 		data.resize(elements);
 		std::iota(data.begin(), data.end(), 1);
+		if(doRandomize)
+		{
+			randomize();
+		}
 	}
 
 	/**
