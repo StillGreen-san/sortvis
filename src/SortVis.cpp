@@ -1,27 +1,59 @@
-#include "algorithms.hpp"
-#include "cli.hpp"
-#include "sorter.hpp"
+#include "gui.hpp"
+
+#include "imgui-SFML.h"
+
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Window/Event.hpp>
 
 #include <iostream>
 
-constexpr size_t ELEMENTS_TO_SORT = 10;
+constexpr unsigned FRAMERATE = 30;
 
 int main()
 {
 	try
 	{
-		sortvis::SorterCollection sorters(ELEMENTS_TO_SORT,
-		    {sortvis::algorithms::bubble, sortvis::algorithms::insertion, sortvis::algorithms::shell,
-		        sortvis::algorithms::selection, sortvis::algorithms::quick, sortvis::algorithms::heap});
+		sf::VideoMode windowvidmode = sf::VideoMode::getDesktopMode();
+		windowvidmode.height /= 2;
+		windowvidmode.width /= 2;
 
-		while(!sorters.allHaveFinished())
+		sf::RenderWindow window(windowvidmode, "Sorting Visualization");
+		// window.setVerticalSyncEnabled(true);
+		window.setFramerateLimit(FRAMERATE);
+
+		ImGui::SFML::Init(window);
+		ImPlot::CreateContext();
+		ImGui::GetIO().IniFilename = nullptr;
+
+		sortvis::GUIData data;
+
+		while(window.isOpen())
 		{
-			sortvis::cli::print(sorters);
+			sf::Event event{sf::Event::Count, 0}; //! meaningless event init for tidy
+			while(window.pollEvent(event))
+			{
+				ImGui::SFML::ProcessEvent(event);
 
-			sorters.advance();
+				if(event.type == sf::Event::Closed)
+				{
+					window.close();
+				}
+			}
+
+			data.update();
+
+			ImGui::SFML::Update(window, data.deltaTime);
+
+			sortvis::renderSettings(data);
+			sortvis::renderSorters(data);
+
+			window.clear();
+			ImGui::SFML::Render(window);
+			window.display();
 		}
 
-		sorters.reset();
+		ImPlot::DestroyContext();
+		ImGui::SFML::Shutdown();
 	}
 	catch(sortvis::InitFailureException& e)
 	{

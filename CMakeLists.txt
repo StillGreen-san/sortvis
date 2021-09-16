@@ -44,15 +44,10 @@ set( SOURCES_SFML
 add_executable( ${TARGET_MAIN} ${SOURCES_MAIN} )
 target_include_directories( ${TARGET_MAIN} PRIVATE ${INC_DIR} )
 # target_include_directories( ${TARGET_MAIN} SYSTEM PRIVATE ${EXT_DIR} )
-target_link_libraries( ${TARGET_MAIN} PRIVATE cppcoro )
+target_link_libraries( ${TARGET_MAIN} PRIVATE cppcoro sfml-system sfml-graphics sfml-window ImGui-SFML::ImGui-SFML imgui::imgui implot::implot )
 target_compile_features( ${TARGET_MAIN} PRIVATE cxx_std_20 )
 
 add_executable( ${TARGET_TEST} ${SOURCES_TEST} )
 target_include_directories( ${TARGET_TEST} SYSTEM PRIVATE ${INC_DIR} ${Catch2_INCLUDE_DIRS} )
 target_link_libraries( ${TARGET_TEST} PRIVATE cppcoro Catch2::Catch2 )
 target_compile_features( ${TARGET_TEST} PRIVATE cxx_std_20 )
-
-add_executable( ${TARGET_SFML} ${SOURCES_SFML} )
-target_include_directories( ${TARGET_SFML} PRIVATE ${INC_DIR} )
-target_link_libraries( ${TARGET_SFML} PRIVATE cppcoro sfml-system sfml-graphics sfml-window ImGui-SFML::ImGui-SFML imgui::imgui implot::implot )
-target_compile_features( ${TARGET_SFML} PRIVATE cxx_std_20 )

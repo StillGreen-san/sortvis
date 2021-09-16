@@ -2,13 +2,9 @@
 
 #undef IMGUI_USE_WCHAR32 // fix for redef in imconfig
 
-#include "imgui.h" // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
+#include "imgui.h"
 
-#include "imgui-SFML.h" // for ImGui::SFML::* functions and SFML-specific overloads
-
-#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
-#include <SFML/Window/Event.hpp>
 
 #include <implot.h>
 
@@ -28,6 +24,10 @@ constexpr auto SORTER = static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoInputs
 constexpr auto SETTINGS = static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 } // namespace flags
 
+/**
+ * @brief class containing data used in gui, call update before drawing a frame
+ *
+ */
 class GUIData
 {
 public:
@@ -54,6 +54,10 @@ public:
 	}
 
 public:
+	/**
+	 * @brief updates timing and advances/resets sorters
+	 *
+	 */
 	void update()
 	{
 		deltaTime = deltaClock.restart();
@@ -75,10 +79,14 @@ public:
 
 		windowSize = ImGui::GetMainViewport()->Size;
 	}
-
-private:
 };
 
+/**
+ * @brief converts 24bit rgb to ImVec4
+ *
+ * @param rgb 24bit color value
+ * @return ImVec4 rgba float color
+ */
 ImVec4 fromRGB(uint32_t rgb)
 {
 	return {
@@ -91,6 +99,15 @@ constexpr uint32_t SPRING_GREEN = 0x00FF7F;
 constexpr uint32_t GOLDEN_ROD = 0xDAA520;
 constexpr uint32_t FIRE_BRICK = 0xB22222;
 
+/**
+ * @brief filtered getter for plotting SortableCollection
+ *
+ * @tparam STATE_A SortableState to filter for
+ * @tparam STATE_B SortableState to filter for
+ * @param data void* to SortableCollection
+ * @param idx index
+ * @return ImPlotPoint for bar if states match or {0,0}
+ */
 template<auto STATE_A, auto STATE_B = STATE_A>
 requires sortvis::SortableState<decltype(STATE_A)> && sortvis::SortableState<decltype(STATE_B)> ImPlotPoint
 genericGetter(void* data, int idx)
@@ -110,6 +127,11 @@ constexpr auto partialGetter =
     genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Partial>;
 constexpr auto noneGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::None>;
 
+/**
+ * @brief renders the settings area
+ *
+ * @param data
+ */
 void renderSettings(sortvis::GUIData& data)
 {
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -140,6 +162,19 @@ void renderSettings(sortvis::GUIData& data)
 	ImGui::End();
 }
 
+void plotBars(const char* label_id, ImPlotPoint (*getter)(void* data, int idx), uint32_t color,
+    const sortvis::SortableCollection& data)
+{
+	ImPlot::SetNextFillStyle(fromRGB(color));
+	ImPlot::PlotBarsG(label_id, getter, static_cast<void*>(const_cast<sortvis::SortableCollection*>(&data)),
+	    static_cast<int>(data.size()), 1.0);
+}
+
+/**
+ * @brief renders the sorters area
+ *
+ * @param data
+ */
 void renderSorters(sortvis::GUIData& data)
 {
 	ImGui::SetNextWindowPos(ImVec2(0, data.controlSize.y));
@@ -156,16 +191,12 @@ void renderSorters(sortvis::GUIData& data)
 		{
 			ImPlot::SetLegendLocation(
 			    ImPlotLocation_::ImPlotLocation_South, ImPlotOrientation_::ImPlotOrientation_Horizontal, true);
-			ImPlot::SetNextFillStyle(fromRGB(FIRE_BRICK));
-			ImPlot::PlotBarsG("write", writeGetter, (void*)(&sorter.data()), (int)data.sortables.size(), 1.0);
-			ImPlot::SetNextFillStyle(fromRGB(GOLDEN_ROD));
-			ImPlot::PlotBarsG("read", readGetter, (void*)(&sorter.data()), (int)data.sortables.size(), 1.0);
-			ImPlot::SetNextFillStyle(fromRGB(FOREST_GREEN));
-			ImPlot::PlotBarsG("sorted", fullyGetter, (void*)(&sorter.data()), (int)data.sortables.size(), 1.0);
-			ImPlot::SetNextFillStyle(fromRGB(SPRING_GREEN));
-			ImPlot::PlotBarsG("partial", partialGetter, (void*)(&sorter.data()), (int)data.sortables.size(), 1.0);
-			ImPlot::SetNextFillStyle(fromRGB(ROYAL_BLUE));
-			ImPlot::PlotBarsG("none", noneGetter, (void*)(&sorter.data()), (int)data.sortables.size(), 1.0);
+
+			sortvis::plotBars("write", writeGetter, FIRE_BRICK, sorter.data());
+			sortvis::plotBars("read", readGetter, GOLDEN_ROD, sorter.data());
+			sortvis::plotBars("sorted", fullyGetter, FOREST_GREEN, sorter.data());
+			sortvis::plotBars("none", noneGetter, ROYAL_BLUE, sorter.data());
+
 			ImPlot::EndPlot();
 		}
 		if(++sorterNumber != 3)
