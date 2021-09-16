@@ -11,6 +11,8 @@
 #include "sortable.hpp"
 #include "sorter.hpp"
 
+#include <string>
+
 namespace sortvis
 {
 namespace flags
@@ -87,7 +89,7 @@ public:
  * @param rgb 24bit color value
  * @return ImVec4 rgba float color
  */
-ImVec4 fromRGB(uint32_t rgb)
+ImVec4 fromRGB(uint32_t rgb) noexcept
 {
 	return {
 	    ((rgb & 0xFF0000) >> 16) / 255.0f, ((rgb & 0x00FF00) >> 8) / 255.0f, ((rgb & 0x0000FF) >> 0) / 255.0f, 1.0f};
@@ -111,6 +113,7 @@ constexpr uint32_t FIRE_BRICK = 0xB22222;
 template<auto STATE_A, auto STATE_B = STATE_A>
 requires sortvis::SortableState<decltype(STATE_A)> && sortvis::SortableState<decltype(STATE_B)> ImPlotPoint
 genericGetter(void* data, int idx)
+noexcept
 {
 	const auto& collection = *static_cast<sortvis::SortableCollection*>(data);
 	const auto& element = collection.begin()[idx];
@@ -183,6 +186,17 @@ void renderSorters(sortvis::GUIData& data)
 
 	const ImVec2 plotSize((data.windowSize.x / 3) - 10, ((data.windowSize.y - data.controlSize.y) / 2) - 9);
 
+	struct NumberedString
+	{
+		std::string data;
+		const char* operator()(const char* str, unsigned num)
+		{
+			data = str;
+			data.append(1, ' ').append(std::to_string(num));
+			return data.data();
+		}
+	} numberedstring;
+
 	int sorterNumber = 0;
 	for(const sortvis::Sorter& sorter : data.sorters)
 	{
@@ -192,8 +206,10 @@ void renderSorters(sortvis::GUIData& data)
 			ImPlot::SetLegendLocation(
 			    ImPlotLocation_::ImPlotLocation_South, ImPlotOrientation_::ImPlotOrientation_Horizontal, true);
 
-			sortvis::plotBars("write", writeGetter, FIRE_BRICK, sorter.data());
-			sortvis::plotBars("read", readGetter, GOLDEN_ROD, sorter.data());
+			sortvis::plotBars(numberedstring("write", sorter.data().getCounter(sortvis::Sortable::AccessState::Write)),
+			    writeGetter, FIRE_BRICK, sorter.data());
+			sortvis::plotBars(numberedstring("read", sorter.data().getCounter(sortvis::Sortable::AccessState::Read)),
+			    readGetter, GOLDEN_ROD, sorter.data());
 			sortvis::plotBars("sorted", fullyGetter, FOREST_GREEN, sorter.data());
 			sortvis::plotBars("none", noneGetter, ROYAL_BLUE, sorter.data());
 

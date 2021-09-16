@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <numeric>
 #include <random>
 #include <vector>
@@ -38,7 +39,7 @@ struct Sortable
 
 	Sortable() noexcept = default;
 
-	explicit Sortable(int val) : value{val}
+	explicit Sortable(int val) noexcept : value{val}
 	{
 	}
 
@@ -111,6 +112,22 @@ struct Sortable
 	{
 		return accessState == other;
 	}
+
+	/**
+	 * @brief != operator compares SortState
+	 */
+	[[nodiscard]] bool operator!=(const SortState other) const noexcept
+	{
+		return sortState != other;
+	}
+
+	/**
+	 * @brief != operator compares AccessState
+	 */
+	[[nodiscard]] bool operator!=(const AccessState other) const noexcept
+	{
+		return accessState != other;
+	}
 };
 
 template<typename T>
@@ -125,6 +142,8 @@ class SortableCollection
 {
 private:
 	std::vector<sortvis::Sortable> data;
+	std::array<unsigned, 3> accessCounter{0, 0, 0};
+	std::array<unsigned, 3> sortCounter{0, 0, 0};
 
 public:
 	/**
@@ -193,8 +212,9 @@ public:
 	 */
 	bool less(size_t lhs, size_t rhs) noexcept
 	{
-		data[lhs].accessState = sortvis::Sortable::AccessState::Read;
-		data[rhs].accessState = sortvis::Sortable::AccessState::Read;
+		data[lhs] = sortvis::Sortable::AccessState::Read;
+		data[rhs] = sortvis::Sortable::AccessState::Read;
+		accessCounter[static_cast<size_t>(sortvis::Sortable::AccessState::Read)] += 2;
 		return data[lhs] < data[rhs];
 	}
 
@@ -208,8 +228,9 @@ public:
 	 */
 	bool greater(size_t lhs, size_t rhs) noexcept
 	{
-		data[lhs].accessState = sortvis::Sortable::AccessState::Read;
-		data[rhs].accessState = sortvis::Sortable::AccessState::Read;
+		data[lhs] = sortvis::Sortable::AccessState::Read;
+		data[rhs] = sortvis::Sortable::AccessState::Read;
+		accessCounter[static_cast<size_t>(sortvis::Sortable::AccessState::Read)] += 2;
 		return data[lhs] > data[rhs];
 	}
 
@@ -222,24 +243,17 @@ public:
 	 */
 	void swap(size_t lhs, size_t rhs) noexcept
 	{
-		assert(data[lhs].sortState != sortvis::Sortable::SortState::Full);
-		assert(data[rhs].sortState != sortvis::Sortable::SortState::Full);
-		data[lhs].accessState = sortvis::Sortable::AccessState::Write;
-		data[rhs].accessState = sortvis::Sortable::AccessState::Write;
+		assert(data[lhs] != sortvis::Sortable::SortState::Full);
+		assert(data[rhs] != sortvis::Sortable::SortState::Full);
+		data[lhs] = sortvis::Sortable::AccessState::Write;
+		data[rhs] = sortvis::Sortable::AccessState::Write;
+		accessCounter[static_cast<size_t>(sortvis::Sortable::AccessState::Write)] += 2;
 		std::swap(data[lhs], data[rhs]);
 	}
 
-	/**
-	 * @brief gets Value at idx,
-	 * sets AccessState of Sortable to Read
-	 *
-	 * @param idx
-	 * @return int
-	 */
-	[[nodiscard]] int get(size_t idx) noexcept
+	[[nodiscard]] unsigned getCounter(sortvis::Sortable::AccessState state) const noexcept
 	{
-		data[idx].accessState = sortvis::Sortable::AccessState::Read;
-		return data[idx].value;
+		return accessCounter[static_cast<size_t>(state)];
 	}
 
 	/**
@@ -290,6 +304,8 @@ public:
 	void reset(const sortvis::SortableCollection& dat)
 	{
 		data = dat.data;
+		accessCounter = {0, 0, 0};
+		sortCounter = {0, 0, 0};
 	}
 
 	/**

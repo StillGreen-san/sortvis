@@ -59,6 +59,10 @@ int main()
 	{
 		std::cerr << "[InitFailureException] " << e.what() << std::endl;
 	}
+	catch(std::exception& e)
+	{
+		std::cerr << "[StdException] " << e.what() << std::endl;
+	}
 	catch(...)
 	{
 		std::cerr << "[UNKOWN_EXCEPTION] !" << std::endl;
