@@ -107,7 +107,7 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 			stack.push(std::make_pair(start, pivot - 1));
 			pushed = true;
 		}
-		else
+		else if(start != pivot)
 		{
 			data->state(sortvis::Sortable::SortState::Full, start);
 		}
@@ -117,7 +117,7 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 			stack.push(std::make_pair(pivot + 1, end));
 			pushed = true;
 		}
-		else
+		else if(end != pivot)
 		{
 			data->state(sortvis::Sortable::SortState::Full, end);
 		}

@@ -192,7 +192,7 @@ void renderSorters(sortvis::GUIData& data)
 		const char* operator()(const char* str, unsigned num)
 		{
 			data = str;
-			data.append(1, ' ').append(std::to_string(num));
+			data.append(std::to_string(num));
 			return data.data();
 		}
 	} numberedstring;
@@ -206,12 +206,15 @@ void renderSorters(sortvis::GUIData& data)
 			ImPlot::SetLegendLocation(
 			    ImPlotLocation_::ImPlotLocation_South, ImPlotOrientation_::ImPlotOrientation_Horizontal, true);
 
-			sortvis::plotBars(numberedstring("write", sorter.data().getCounter(sortvis::Sortable::AccessState::Write)),
+			sortvis::plotBars(numberedstring("swap ", sorter.data().getCounter(sortvis::Sortable::AccessState::Write)),
 			    writeGetter, FIRE_BRICK, sorter.data());
-			sortvis::plotBars(numberedstring("read", sorter.data().getCounter(sortvis::Sortable::AccessState::Read)),
-			    readGetter, GOLDEN_ROD, sorter.data());
-			sortvis::plotBars("sorted", fullyGetter, FOREST_GREEN, sorter.data());
-			sortvis::plotBars("none", noneGetter, ROYAL_BLUE, sorter.data());
+			sortvis::plotBars(
+			    numberedstring("compare ", sorter.data().getCounter(sortvis::Sortable::AccessState::Read)), readGetter,
+			    GOLDEN_ROD, sorter.data());
+			sortvis::plotBars(numberedstring("sorted ", sorter.data().getCounter(sortvis::Sortable::SortState::Full)),
+			    fullyGetter, FOREST_GREEN, sorter.data());
+			sortvis::plotBars(numberedstring("none ", sorter.data().getCounter(sortvis::Sortable::SortState::None)),
+			    noneGetter, ROYAL_BLUE, sorter.data());
 
 			ImPlot::EndPlot();
 		}

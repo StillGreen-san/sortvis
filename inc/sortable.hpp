@@ -159,6 +159,7 @@ public:
 		{
 			randomize();
 		}
+		sortCounter[static_cast<size_t>(sortvis::Sortable::SortState::None)] = static_cast<unsigned>(data.size());
 	}
 
 	/**
@@ -173,6 +174,7 @@ public:
 		{
 			data.emplace_back(i);
 		}
+		sortCounter[static_cast<size_t>(sortvis::Sortable::SortState::None)] = static_cast<unsigned>(data.size());
 	}
 
 	constexpr explicit SortableCollection() noexcept = delete;
@@ -214,7 +216,7 @@ public:
 	{
 		data[lhs] = sortvis::Sortable::AccessState::Read;
 		data[rhs] = sortvis::Sortable::AccessState::Read;
-		accessCounter[static_cast<size_t>(sortvis::Sortable::AccessState::Read)] += 2;
+		accessCounter[static_cast<size_t>(sortvis::Sortable::AccessState::Read)]++;
 		return data[lhs] < data[rhs];
 	}
 
@@ -230,7 +232,7 @@ public:
 	{
 		data[lhs] = sortvis::Sortable::AccessState::Read;
 		data[rhs] = sortvis::Sortable::AccessState::Read;
-		accessCounter[static_cast<size_t>(sortvis::Sortable::AccessState::Read)] += 2;
+		accessCounter[static_cast<size_t>(sortvis::Sortable::AccessState::Read)]++;
 		return data[lhs] > data[rhs];
 	}
 
@@ -247,13 +249,18 @@ public:
 		assert(data[rhs] != sortvis::Sortable::SortState::Full);
 		data[lhs] = sortvis::Sortable::AccessState::Write;
 		data[rhs] = sortvis::Sortable::AccessState::Write;
-		accessCounter[static_cast<size_t>(sortvis::Sortable::AccessState::Write)] += 2;
+		accessCounter[static_cast<size_t>(sortvis::Sortable::AccessState::Write)]++;
 		std::swap(data[lhs], data[rhs]);
 	}
 
 	[[nodiscard]] unsigned getCounter(sortvis::Sortable::AccessState state) const noexcept
 	{
 		return accessCounter[static_cast<size_t>(state)];
+	}
+
+	[[nodiscard]] unsigned getCounter(sortvis::Sortable::SortState state) const noexcept
+	{
+		return sortCounter[static_cast<size_t>(state)];
 	}
 
 	/**
@@ -270,6 +277,14 @@ public:
 	void state(STATE state, IDX... idx) noexcept
 	{
 		((data[idx] = state), ...);
+		if constexpr(std::is_same_v<STATE, sortvis::Sortable::SortState>)
+		{
+			if(state == sortvis::Sortable::SortState::Full)
+			{
+				sortCounter[static_cast<size_t>(sortvis::Sortable::SortState::None)] -= sizeof...(IDX);
+				sortCounter[static_cast<size_t>(sortvis::Sortable::SortState::Full)] += sizeof...(IDX);
+			}
+		}
 	}
 
 	/**
@@ -306,6 +321,7 @@ public:
 		data = dat.data;
 		accessCounter = {0, 0, 0};
 		sortCounter = {0, 0, 0};
+		sortCounter[static_cast<size_t>(sortvis::Sortable::SortState::None)] = static_cast<unsigned>(data.size());
 	}
 
 	/**
