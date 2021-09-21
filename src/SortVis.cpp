@@ -7,8 +7,6 @@
 
 #include <iostream>
 
-constexpr unsigned FRAMERATE = 30;
-
 int main()
 {
 	try
@@ -19,7 +17,7 @@ int main()
 
 		sf::RenderWindow window(windowvidmode, "Sorting Visualization");
 		// window.setVerticalSyncEnabled(true);
-		window.setFramerateLimit(FRAMERATE);
+		window.setFramerateLimit(sortvis::FRAMERATE);
 
 		ImGui::SFML::Init(window);
 		ImPlot::CreateContext();

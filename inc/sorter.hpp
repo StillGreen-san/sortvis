@@ -13,7 +13,6 @@ namespace sortvis
  * @brief A SorterAlgorithm that sorts a SortableCollection
  *
  * @todo add custom copy constructors (defaults break with cppcoro::generator)
- * @todo count read/writes
  */
 class Sorter
 {

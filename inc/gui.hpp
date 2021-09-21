@@ -11,6 +11,7 @@
 #include "sortable.hpp"
 #include "sorter.hpp"
 
+#include <charconv>
 #include <string>
 
 namespace sortvis
@@ -25,6 +26,53 @@ constexpr auto YAXIS = static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | I
 constexpr auto SORTER = static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);
 constexpr auto SETTINGS = static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 } // namespace flags
+
+constexpr unsigned FRAMERATE = 30;
+
+struct NumberedString
+{
+	std::array<char, 16> data{'\0'};
+	char* staticEnd;
+	NumberedString(const char* str)
+	{
+		size_t len = std::strlen(str);
+		std::strncpy(data.data(), str, len);
+		staticEnd = data.data() + len;
+	}
+	void update(unsigned num)
+	{
+		auto result = std::to_chars(staticEnd, data.data() + data.size(), num);
+		*result.ptr = '\0';
+	}
+};
+
+struct BarLabels
+{
+	std::array<NumberedString, 4> data{"swap ", "compare ", "sorted ", "none "};
+	sortvis::NumberedString& write()
+	{
+		return data[0];
+	}
+	sortvis::NumberedString& read()
+	{
+		return data[1];
+	}
+	sortvis::NumberedString& full()
+	{
+		return data[2];
+	}
+	sortvis::NumberedString& none()
+	{
+		return data[3];
+	}
+	void update(const sortvis::Sorter& sorter)
+	{
+		write().update(sorter.data().getCounter(sortvis::Sortable::AccessState::Write));
+		read().update(sorter.data().getCounter(sortvis::Sortable::AccessState::Read));
+		full().update(sorter.data().getCounter(sortvis::Sortable::SortState::Full));
+		none().update(sorter.data().getCounter(sortvis::Sortable::SortState::None));
+	}
+};
 
 /**
  * @brief class containing data used in gui, call update before drawing a frame
@@ -46,6 +94,7 @@ public:
 
 	sortvis::SortableCollection sortables;
 	sortvis::SorterCollection sorters;
+	sortvis::BarLabels barLabels;
 
 	GUIData() :
 	    sortables(elements, true),
@@ -67,7 +116,7 @@ public:
 
 		if(advanceDelta > advanceDelay)
 		{
-			advanceDelta -= advanceDelay;
+			advanceDelta = 0;
 			if(!sorters.allHaveFinished())
 			{
 				sorters.advance();
@@ -125,7 +174,7 @@ noexcept
 }
 constexpr auto writeGetter = genericGetter<sortvis::Sortable::AccessState::Write>;
 constexpr auto readGetter = genericGetter<sortvis::Sortable::AccessState::Read>;
-constexpr auto fullyGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Full>;
+constexpr auto fullGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Full>;
 constexpr auto partialGetter =
     genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Partial>;
 constexpr auto noneGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::None>;
@@ -143,7 +192,7 @@ void renderSettings(sortvis::GUIData& data)
 	ImGui::Begin("Control Window", nullptr, sortvis::flags::SETTINGS);
 
 	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
-	ImGui::SliderFloat("advance delay", &data.advanceDelay, 0.05f, 0.75f);
+	ImGui::SliderFloat("advance delay", &data.advanceDelay, 1.f / sortvis::FRAMERATE, 0.75f);
 
 	ImGui::SameLine();
 	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
@@ -165,12 +214,13 @@ void renderSettings(sortvis::GUIData& data)
 	ImGui::End();
 }
 
-void plotBars(const char* label_id, ImPlotPoint (*getter)(void* data, int idx), uint32_t color,
-    const sortvis::SortableCollection& data)
+void plotBars(const sortvis::Sorter& sorter, const sortvis::NumberedString& label, uint32_t color,
+    ImPlotPoint (*getter)(void* data, int idx))
 {
 	ImPlot::SetNextFillStyle(fromRGB(color));
-	ImPlot::PlotBarsG(label_id, getter, static_cast<void*>(const_cast<sortvis::SortableCollection*>(&data)),
-	    static_cast<int>(data.size()), 1.0);
+	ImPlot::PlotBarsG(label.data.data(), getter,
+	    static_cast<void*>(const_cast<sortvis::SortableCollection*>(&sorter.data())),
+	    static_cast<int>(sorter.data().size()), 1.0);
 }
 
 /**
@@ -186,35 +236,21 @@ void renderSorters(sortvis::GUIData& data)
 
 	const ImVec2 plotSize((data.windowSize.x / 3) - 10, ((data.windowSize.y - data.controlSize.y) / 2) - 9);
 
-	struct NumberedString
-	{
-		std::string data;
-		const char* operator()(const char* str, unsigned num)
-		{
-			data = str;
-			data.append(std::to_string(num));
-			return data.data();
-		}
-	} numberedstring;
-
 	int sorterNumber = 0;
 	for(const sortvis::Sorter& sorter : data.sorters)
 	{
 		if(ImPlot::BeginPlot(sorter.name(), "index", "value", plotSize, sortvis::flags::PLOT, sortvis::flags::XAXIS,
 		       sortvis::flags::YAXIS))
 		{
+			data.barLabels.update(sorter);
+
 			ImPlot::SetLegendLocation(
 			    ImPlotLocation_::ImPlotLocation_South, ImPlotOrientation_::ImPlotOrientation_Horizontal, true);
 
-			sortvis::plotBars(numberedstring("swap ", sorter.data().getCounter(sortvis::Sortable::AccessState::Write)),
-			    writeGetter, FIRE_BRICK, sorter.data());
-			sortvis::plotBars(
-			    numberedstring("compare ", sorter.data().getCounter(sortvis::Sortable::AccessState::Read)), readGetter,
-			    GOLDEN_ROD, sorter.data());
-			sortvis::plotBars(numberedstring("sorted ", sorter.data().getCounter(sortvis::Sortable::SortState::Full)),
-			    fullyGetter, FOREST_GREEN, sorter.data());
-			sortvis::plotBars(numberedstring("none ", sorter.data().getCounter(sortvis::Sortable::SortState::None)),
-			    noneGetter, ROYAL_BLUE, sorter.data());
+			sortvis::plotBars(sorter, data.barLabels.write(), FIRE_BRICK, writeGetter);
+			sortvis::plotBars(sorter, data.barLabels.read(), GOLDEN_ROD, readGetter);
+			sortvis::plotBars(sorter, data.barLabels.full(), FOREST_GREEN, fullGetter);
+			sortvis::plotBars(sorter, data.barLabels.none(), ROYAL_BLUE, noneGetter);
 
 			ImPlot::EndPlot();
 		}
