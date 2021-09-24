@@ -72,6 +72,10 @@ public:
 	}
 };
 
+/**
+ * @brief helper struct for bar labels
+ *
+ */
 struct BarLabels
 {
 	std::array<NumberedString, 4> data{"swap ", "compare ", "sorted ", "none "};
@@ -91,6 +95,12 @@ struct BarLabels
 	{
 		return data[3];
 	}
+
+	/**
+	 * @brief update NumberedStrings with counters of sorter
+	 *
+	 * @param sorter to use counters from
+	 */
 	void update(const sortvis::Sorter& sorter)
 	{
 		write().update(sorter.data().getCounter(sortvis::Sortable::AccessState::Write));
@@ -140,9 +150,9 @@ public:
 		deltaTime = deltaClock.restart();
 		advanceDelta += deltaTime.asSeconds();
 
-		if(advanceDelta > advanceDelay)
+		while(advanceDelta > advanceDelay)
 		{
-			advanceDelta = 0;
+			advanceDelta -= advanceDelay;
 			if(!sorters.allHaveFinished())
 			{
 				sorters.advance();
@@ -218,7 +228,8 @@ void renderSettings(sortvis::GUIData& data)
 	ImGui::Begin("Control Window", nullptr, sortvis::flags::SETTINGS);
 
 	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
-	ImGui::SliderFloat("advance delay", &data.advanceDelay, 1.f / sortvis::FRAMERATE, 0.75f);
+	ImGui::SliderFloat(
+	    "advance delay", &data.advanceDelay, 0.004f, 1.0f, "%.3f", ImGuiSliderFlags_::ImGuiSliderFlags_Logarithmic);
 
 	ImGui::SameLine();
 	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
