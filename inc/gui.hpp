@@ -29,20 +29,46 @@ constexpr auto SETTINGS = static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoDeco
 
 constexpr unsigned FRAMERATE = 30;
 
-struct NumberedString
+/**
+ * @brief represents a string with a number at the end,
+ * with fixed max size of 14
+ *
+ */
+class NumberedString
 {
-	std::array<char, 16> data{'\0'};
-	char* staticEnd;
+private:
+	std::array<char, 15> string{'\0'};
+	unsigned char staticSize;
+
+public:
+	/**
+	 * @brief Construct a new Numbered String object
+	 *
+	 * @param str string befor number
+	 */
 	NumberedString(const char* str)
 	{
-		size_t len = std::strlen(str);
-		std::strncpy(data.data(), str, len);
-		staticEnd = data.data() + len;
+		staticSize = static_cast<unsigned char>(std::strlen(str));
+		std::strncpy(string.data(), str, staticSize);
 	}
-	void update(unsigned num)
+
+	/**
+	 * @brief updates the number after the string
+	 *
+	 * @param num the number
+	 */
+	void update(unsigned num) noexcept
 	{
-		auto result = std::to_chars(staticEnd, data.data() + data.size(), num);
+		auto result = std::to_chars(string.data() + staticSize, string.data() + (string.size() - 1), num);
 		*result.ptr = '\0';
+	}
+
+	/**
+	 * @return const char* to begin of string
+	 */
+	const char* data() const noexcept
+	{
+		return string.data();
 	}
 };
 
@@ -214,11 +240,19 @@ void renderSettings(sortvis::GUIData& data)
 	ImGui::End();
 }
 
+/**
+ * @brief helper function to plot SortableCollection
+ *
+ * @param sorter Sorter to plot
+ * @param label
+ * @param color
+ * @param getter
+ */
 void plotBars(const sortvis::Sorter& sorter, const sortvis::NumberedString& label, uint32_t color,
     ImPlotPoint (*getter)(void* data, int idx))
 {
 	ImPlot::SetNextFillStyle(fromRGB(color));
-	ImPlot::PlotBarsG(label.data.data(), getter,
+	ImPlot::PlotBarsG(label.data(), getter,
 	    static_cast<void*>(const_cast<sortvis::SortableCollection*>(&sorter.data())),
 	    static_cast<int>(sorter.data().size()), 1.0);
 }
