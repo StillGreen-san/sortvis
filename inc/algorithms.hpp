@@ -31,12 +31,13 @@ constexpr int SWAP_MAGIC_VALUE = 0b10101010101010101010101010100100;
 cppcoro::generator<const int> bubble(std::shared_ptr<sortvis::SortableCollection> data)
 {
 	bool changed = false;
-	size_t n = data->size() - 1;
+	size_t n = data->size();
 
 	co_yield INIT_MAGIC_VALUE;
 
 	do
 	{
+		--n;
 		changed = false;
 		for(size_t i = 0; i < n; ++i)
 		{
@@ -54,7 +55,6 @@ cppcoro::generator<const int> bubble(std::shared_ptr<sortvis::SortableCollection
 			}
 		}
 		data->state(sortvis::Sortable::SortState::Full, n);
-		--n;
 	} while(changed);
 
 	for(size_t i = 0; i <= n; ++i)
