@@ -16,6 +16,10 @@
 
 namespace sortvis
 {
+/**
+ * @brief contains flag constants for the gui
+ *
+ */
 namespace flags
 {
 constexpr auto PLOT = static_cast<ImPlotFlags_>(
@@ -25,6 +29,7 @@ constexpr auto XAXIS = static_cast<ImPlotAxisFlags_>(
 constexpr auto YAXIS = static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoLabel);
 constexpr auto SORTER = static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);
 constexpr auto SETTINGS = static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+constexpr auto DELAY = ImGuiSliderFlags_::ImGuiSliderFlags_Logarithmic;
 } // namespace flags
 
 constexpr unsigned FRAMERATE = 30;
@@ -168,23 +173,25 @@ public:
 	}
 };
 
+using RGBcolor = uint32_t;
+
 /**
  * @brief converts 24bit rgb to ImVec4
  *
  * @param rgb 24bit color value
  * @return ImVec4 rgba float color
  */
-ImVec4 fromRGB(uint32_t rgb) noexcept
+ImVec4 fromRGB(RGBcolor rgb) noexcept
 {
 	return {
 	    ((rgb & 0xFF0000) >> 16) / 255.0f, ((rgb & 0x00FF00) >> 8) / 255.0f, ((rgb & 0x0000FF) >> 0) / 255.0f, 1.0f};
 }
 
-constexpr uint32_t ROYAL_BLUE = 0x4169E1;
-constexpr uint32_t FOREST_GREEN = 0x228B22;
-constexpr uint32_t SPRING_GREEN = 0x00FF7F;
-constexpr uint32_t GOLDEN_ROD = 0xDAA520;
-constexpr uint32_t FIRE_BRICK = 0xB22222;
+constexpr RGBcolor ROYAL_BLUE = 0x4169E1;
+constexpr RGBcolor FOREST_GREEN = 0x228B22;
+constexpr RGBcolor SPRING_GREEN = 0x00FF7F;
+constexpr RGBcolor GOLDEN_ROD = 0xDAA520;
+constexpr RGBcolor FIRE_BRICK = 0xB22222;
 
 /**
  * @brief filtered getter for plotting SortableCollection
@@ -228,8 +235,7 @@ void renderSettings(sortvis::GUIData& data)
 	ImGui::Begin("Control Window", nullptr, sortvis::flags::SETTINGS);
 
 	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
-	ImGui::SliderFloat(
-	    "advance delay", &data.advanceDelay, 0.004f, 1.0f, "%.3f", ImGuiSliderFlags_::ImGuiSliderFlags_Logarithmic);
+	ImGui::SliderFloat("advance delay", &data.advanceDelay, 0.004f, 1.0f, "%.3f", sortvis::flags::DELAY);
 
 	ImGui::SameLine();
 	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
@@ -259,7 +265,7 @@ void renderSettings(sortvis::GUIData& data)
  * @param color
  * @param getter
  */
-void plotBars(const sortvis::Sorter& sorter, const sortvis::NumberedString& label, uint32_t color,
+void plotBars(const sortvis::Sorter& sorter, const sortvis::NumberedString& label, RGBcolor color,
     ImPlotPoint (*getter)(void* data, int idx))
 {
 	ImPlot::SetNextFillStyle(fromRGB(color));
