@@ -184,7 +184,8 @@ public:
 		sortCounter[static_cast<size_t>(sortvis::Sortable::SortState::None)] = static_cast<unsigned>(data.size());
 	}
 
-	constexpr explicit SortableCollection() noexcept = delete;
+	explicit SortableCollection() = delete;
+
 	explicit SortableCollection(SortableCollection&&) = default;
 	explicit SortableCollection(const SortableCollection&) = default;
 	SortableCollection& operator=(SortableCollection&&) noexcept = default;
@@ -197,17 +198,19 @@ public:
 	 */
 	void randomize()
 	{
-		randomize(std::random_device{}());
+		std::default_random_engine rng(std::random_device{}());
+		std::shuffle(data.begin(), data.end(), rng);
 	}
 
 	/**
-	 * @brief Randomize the Collection
+	 * @brief Randomize the Collection deterministically
 	 *
-	 * @param seed to initialize random engine with
+	 * @param seed
 	 */
 	void randomize(std::default_random_engine::result_type seed)
 	{
 		std::default_random_engine rng(seed);
+		std::sort(data.begin(), data.end());
 		std::shuffle(data.begin(), data.end(), rng);
 	}
 
@@ -319,7 +322,7 @@ public:
 	}
 
 	/**
-	 * @brief resets the Collection with dat
+	 * @brief resets the Collection with dat and resets counters
 	 *
 	 * @param dat Collection to copy data from
 	 */
@@ -332,6 +335,8 @@ public:
 	}
 
 	/**
+	 * @brief compares only values not states or counters
+	 *
 	 * @param other Collection to compare to
 	 * @return true if Collection != other Collection
 	 */
@@ -341,6 +346,8 @@ public:
 	}
 
 	/**
+	 * @brief compares only values not states or counters
+	 *
 	 * @param other Collection to compare to
 	 * @return true if Collection == other Collection
 	 */
