@@ -36,6 +36,7 @@ set( SOURCES_MAIN
 set( SOURCES_TEST
 	${TEST_DIR}/${TARGET_TEST}.cpp
 	${TEST_DIR}/sorting-test.cpp
+	${TEST_DIR}/sortable-test.cpp
 )
 set( SOURCES_SFML
 	${SRC_DIR}/${TARGET_SFML}.cpp
