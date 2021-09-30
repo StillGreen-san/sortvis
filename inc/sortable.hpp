@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <numeric>
 #include <random>
 #include <vector>
@@ -10,6 +11,7 @@ namespace sortvis
 /**
  * @brief Value for SortableCollection with additional State for Visualization
  *
+ * @todo rename/remove states to better reflect actual usage
  */
 struct Sortable
 {
@@ -127,6 +129,11 @@ struct Sortable
 	[[nodiscard]] bool operator!=(const AccessState other) const noexcept
 	{
 		return accessState != other;
+	}
+
+	operator int() const
+	{
+		return value;
 	}
 };
 
