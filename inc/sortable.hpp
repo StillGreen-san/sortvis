@@ -274,7 +274,8 @@ public:
 	}
 
 	/**
-	 * @brief Sets the AccessState of all Sortables to state
+	 * @brief Sets the AccessState of all Sortables to state,
+	 * if SortState == Full sort counters will be updated
 	 *
 	 * @tparam STATE sortvis::SortableState
 	 * @tparam IDX... std::unsigned_integral
