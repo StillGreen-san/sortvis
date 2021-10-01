@@ -125,21 +125,6 @@ private:
 	sortvis::SortableCollection initialState;
 	bool allFinished = false;
 
-	/**
-	 * @brief reset all sorters with initialState
-	 *
-	 * @return allHaveFinished()
-	 */
-	bool reset_()
-	{
-		allFinished = true;
-		for(sortvis::Sorter& sorter : sorters)
-		{
-			allFinished &= sorter.reset(initialState);
-		}
-		return allHaveFinished();
-	}
-
 public:
 	/**
 	 * @brief Construct a new Sorter Collection object
@@ -199,17 +184,6 @@ public:
 	}
 
 	/**
-	 * @brief resets all Sorters with their initial data
-	 *
-	 * @return allHaveFinished()
-	 */
-	bool reset()
-	{
-		initialState.randomize();
-		return reset_();
-	}
-
-	/**
 	 * @brief resets all Sorters with elements
 	 *
 	 * @param elements the new initial state
@@ -218,7 +192,12 @@ public:
 	bool reset(const sortvis::SortableCollection& elements)
 	{
 		initialState = elements;
-		return reset_();
+		allFinished = true;
+		for(sortvis::Sorter& sorter : sorters)
+		{
+			allFinished &= sorter.reset(initialState);
+		}
+		return allHaveFinished();
 	}
 
 	std::vector<sortvis::Sorter>::const_iterator begin() const noexcept

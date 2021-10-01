@@ -203,7 +203,8 @@ public:
 	}
 
 	/**
-	 * @brief Randomize the Collection deterministically
+	 * @brief Randomize the Collection deterministically,
+	 * previous item order does not affect result
 	 *
 	 * @param seed
 	 */

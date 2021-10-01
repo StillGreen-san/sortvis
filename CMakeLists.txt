@@ -30,6 +30,9 @@ set( TARGET_MAIN ${PROJECT_NAME} )
 set( TARGET_TEST ${PROJECT_NAME}-test )
 set( TARGET_SFML sfmltrial )
 
+set( SOURCES_COMMON
+	${SRC_DIR}/algorithms.cpp
+)
 set( SOURCES_MAIN
 	${SRC_DIR}/${TARGET_MAIN}.cpp
 )
@@ -37,18 +40,19 @@ set( SOURCES_TEST
 	${TEST_DIR}/${TARGET_TEST}.cpp
 	${TEST_DIR}/sorting-test.cpp
 	${TEST_DIR}/sortable-test.cpp
+	${TEST_DIR}/sorter-test.cpp
 )
 set( SOURCES_SFML
 	${SRC_DIR}/${TARGET_SFML}.cpp
 )
 
-add_executable( ${TARGET_MAIN} ${SOURCES_MAIN} )
+add_executable( ${TARGET_MAIN} ${SOURCES_MAIN} ${SOURCES_COMMON} )
 target_include_directories( ${TARGET_MAIN} PRIVATE ${INC_DIR} )
 # target_include_directories( ${TARGET_MAIN} SYSTEM PRIVATE ${EXT_DIR} )
 target_link_libraries( ${TARGET_MAIN} PRIVATE cppcoro sfml-system sfml-graphics sfml-window ImGui-SFML::ImGui-SFML imgui::imgui implot::implot )
 target_compile_features( ${TARGET_MAIN} PRIVATE cxx_std_20 )
 
-add_executable( ${TARGET_TEST} ${SOURCES_TEST} )
+add_executable( ${TARGET_TEST} ${SOURCES_TEST} ${SOURCES_COMMON} )
 target_include_directories( ${TARGET_TEST} SYSTEM PRIVATE ${INC_DIR} ${Catch2_INCLUDE_DIRS} )
 target_link_libraries( ${TARGET_TEST} PRIVATE cppcoro Catch2::Catch2 )
 target_compile_features( ${TARGET_TEST} PRIVATE cxx_std_20 )
