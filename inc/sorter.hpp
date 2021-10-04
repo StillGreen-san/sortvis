@@ -112,6 +112,17 @@ public:
 	{
 		return sortvis::getAlgorithmName(algorithm);
 	}
+
+	/**
+	 * @brief unchecked element access
+	 *
+	 * @param idx index to access
+	 * @return const sortvis::Sortable& element at idx
+	 */
+	[[nodiscard]] const sortvis::Sortable& operator[](size_t idx) const noexcept
+	{
+		return (*colct)[idx];
+	}
 };
 
 /**
@@ -209,6 +220,17 @@ public:
 	std::vector<sortvis::Sorter>::const_iterator end() const noexcept
 	{
 		return sorters.end();
+	}
+
+	/**
+	 * @brief unchecked sorter access
+	 *
+	 * @param idx index to access
+	 * @return const sortvis::Sorter& sorter at idx
+	 */
+	[[nodiscard]] const sortvis::Sorter& operator[](size_t idx) const noexcept
+	{
+		return sorters[idx];
 	}
 };
 } // namespace sortvis

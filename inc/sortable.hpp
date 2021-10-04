@@ -357,5 +357,16 @@ public:
 	{
 		return data == other.data;
 	}
+
+	/**
+	 * @brief unchecked element access
+	 *
+	 * @param idx index to access
+	 * @return const sortvis::Sortable& element at idx
+	 */
+	[[nodiscard]] const sortvis::Sortable& operator[](size_t idx) const noexcept
+	{
+		return data[idx];
+	}
 };
 } // namespace sortvis

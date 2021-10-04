@@ -208,7 +208,7 @@ genericGetter(void* data, int idx)
 noexcept
 {
 	const auto& collection = *static_cast<sortvis::SortableCollection*>(data);
-	const auto& element = collection.begin()[idx];
+	const auto& element = collection[idx];
 	if(element == STATE_A && element == STATE_B)
 	{
 		return ImPlotPoint(idx, element.value);

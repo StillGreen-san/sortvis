@@ -146,16 +146,16 @@ TEST_CASE("SortableCollection::less")
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Read) == 1);
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Write) == 0);
-	REQUIRE(sortables.begin()[0] == sortvis::Sortable::AccessState::Read);
-	REQUIRE(sortables.begin()[1] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[0] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[1] == sortvis::Sortable::AccessState::Read);
 
 	CHECK(sortables.less(0, 2));
 	CHECK_FALSE(sortables.less(3, 0));
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Read) == 3);
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Write) == 0);
-	REQUIRE(sortables.begin()[2] == sortvis::Sortable::AccessState::Read);
-	REQUIRE(sortables.begin()[3] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[2] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[3] == sortvis::Sortable::AccessState::Read);
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::SortState::Full) == 0);
 }
@@ -170,16 +170,16 @@ TEST_CASE("SortableCollection::greater")
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Read) == 1);
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Write) == 0);
-	REQUIRE(sortables.begin()[0] == sortvis::Sortable::AccessState::Read);
-	REQUIRE(sortables.begin()[1] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[0] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[1] == sortvis::Sortable::AccessState::Read);
 
 	CHECK(sortables.greater(2, 0));
 	CHECK_FALSE(sortables.greater(0, 3));
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Read) == 3);
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Write) == 0);
-	REQUIRE(sortables.begin()[2] == sortvis::Sortable::AccessState::Read);
-	REQUIRE(sortables.begin()[3] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[2] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[3] == sortvis::Sortable::AccessState::Read);
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::SortState::Full) == 0);
 }
@@ -194,16 +194,16 @@ TEST_CASE("SortableCollection::swap")
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Read) == 0);
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Write) == 1);
-	REQUIRE(sortables.begin()[0] == sortvis::Sortable::AccessState::Write);
-	REQUIRE(sortables.begin()[1] == sortvis::Sortable::AccessState::Write);
+	REQUIRE(sortables[0] == sortvis::Sortable::AccessState::Write);
+	REQUIRE(sortables[1] == sortvis::Sortable::AccessState::Write);
 
 	sortables.swap(0, 2);
 	sortables.swap(0, 3);
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Read) == 0);
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Write) == 3);
-	REQUIRE(sortables.begin()[2] == sortvis::Sortable::AccessState::Write);
-	REQUIRE(sortables.begin()[3] == sortvis::Sortable::AccessState::Write);
+	REQUIRE(sortables[2] == sortvis::Sortable::AccessState::Write);
+	REQUIRE(sortables[3] == sortvis::Sortable::AccessState::Write);
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::SortState::Full) == 0);
 }
@@ -217,20 +217,20 @@ TEST_CASE("SortableCollection::state")
 	sortables.state(sortvis::Sortable::AccessState::Read, 0U, 1U, 5U);
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Read) == 0);
-	REQUIRE(sortables.begin()[0] == sortvis::Sortable::AccessState::Read);
-	REQUIRE(sortables.begin()[1] == sortvis::Sortable::AccessState::Read);
-	REQUIRE(sortables.begin()[5] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[0] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[1] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[5] == sortvis::Sortable::AccessState::Read);
 
 	sortables.state(sortvis::Sortable::AccessState::Write, 0U, 5U);
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::AccessState::Write) == 0);
-	REQUIRE(sortables.begin()[0] == sortvis::Sortable::AccessState::Write);
-	REQUIRE(sortables.begin()[1] == sortvis::Sortable::AccessState::Read);
-	REQUIRE(sortables.begin()[5] == sortvis::Sortable::AccessState::Write);
+	REQUIRE(sortables[0] == sortvis::Sortable::AccessState::Write);
+	REQUIRE(sortables[1] == sortvis::Sortable::AccessState::Read);
+	REQUIRE(sortables[5] == sortvis::Sortable::AccessState::Write);
 
 	sortables.state(sortvis::Sortable::SortState::Full, 0U, 1U);
 
 	REQUIRE(sortables.getCounter(sortvis::Sortable::SortState::Full) == 2);
-	REQUIRE(sortables.begin()[0] == sortvis::Sortable::SortState::Full);
-	REQUIRE(sortables.begin()[1] == sortvis::Sortable::SortState::Full);
+	REQUIRE(sortables[0] == sortvis::Sortable::SortState::Full);
+	REQUIRE(sortables[1] == sortvis::Sortable::SortState::Full);
 }

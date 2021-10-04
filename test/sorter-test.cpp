@@ -69,8 +69,6 @@ cppcoro::generator<const int> AdvanceGen(std::shared_ptr<sortvis::SortableCollec
 	co_yield sortvis::algorithms::SWAP_MAGIC_VALUE;
 }
 
-// TODO add operator[] to collections
-
 TEST_CASE("Sorter::advance")
 {
 	sortvis::SortableCollection sortables({1, 5, 3, 2, 6, 4});
@@ -79,13 +77,13 @@ TEST_CASE("Sorter::advance")
 
 	CHECK(sorter.advance());
 
-	REQUIRE(sorter.data().begin()[0] == sortables.begin()[1]);
-	REQUIRE(sorter.data().begin()[1] == sortables.begin()[0]);
+	REQUIRE(sorter[0] == sortables[1]);
+	REQUIRE(sorter[1] == sortables[0]);
 
 	CHECK(sorter.advance());
 
-	REQUIRE(sorter.data().begin()[2] == sortables.begin()[3]);
-	REQUIRE(sorter.data().begin()[3] == sortables.begin()[2]);
+	REQUIRE(sorter[2] == sortables[3]);
+	REQUIRE(sorter[3] == sortables[2]);
 
 	CHECK_FALSE(sorter.advance());
 	CHECK_FALSE(sorter.advance());
