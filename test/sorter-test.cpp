@@ -89,12 +89,18 @@ TEST_CASE("Sorter::advance")
 	CHECK_FALSE(sorter.advance());
 }
 
-// TEST_CASE("Sorter::reset")
-// {
-// 	sortvis::SortableCollection sortablesA({3, 1, 2, 4, 5, 6});
-// 	sortvis::SortableCollection sortablesB({1, 5, 3, 2, 6, 4});
+TEST_CASE("Sorter::reset")
+{
+	sortvis::SortableCollection sortablesA({3, 1, 2, 4, 5, 6});
+	sortvis::SortableCollection sortablesB({1, 5, 3, 2, 6, 4});
 
-// 	sortvis::Sorter sorter(sortablesA, sortvis::algorithms::bubble);
+	sortvis::Sorter sorter(sortablesA, ValidGen);
 
-// 	// CHECK_FALSE(sorter.reset());
-// }
+	while(sorter.advance()) {}
+
+	CHECK_FALSE(sorter.reset(sortablesB));
+
+	CHECK(sorter.data() == sortablesB);
+
+	CHECK_FALSE(sorter.hasFinished());
+}
