@@ -33,7 +33,7 @@ TEST_CASE("bubble")
 	{
 		sortvis::Sorter asc(*sc_ptr, sortvis::algorithms::bubble);
 
-		while(!asc.advance()) {}
+		while(asc.advance()) {}
 
 		CHECK(asc.data() == SC_ASC);
 	}
@@ -45,7 +45,7 @@ TEST_CASE("insertion")
 	{
 		sortvis::Sorter asc(*sc_ptr, sortvis::algorithms::insertion);
 
-		while(!asc.advance()) {}
+		while(asc.advance()) {}
 
 		CHECK(asc.data() == SC_ASC);
 	}
@@ -57,7 +57,7 @@ TEST_CASE("shell")
 	{
 		sortvis::Sorter asc(*sc_ptr, sortvis::algorithms::shell);
 
-		while(!asc.advance()) {}
+		while(asc.advance()) {}
 
 		CHECK(asc.data() == SC_ASC);
 	}
@@ -69,7 +69,7 @@ TEST_CASE("selection")
 	{
 		sortvis::Sorter asc(*sc_ptr, sortvis::algorithms::selection);
 
-		while(!asc.advance()) {}
+		while(asc.advance()) {}
 
 		CHECK(asc.data() == SC_ASC);
 	}
@@ -81,7 +81,7 @@ TEST_CASE("quick")
 	{
 		sortvis::Sorter asc(*sc_ptr, sortvis::algorithms::quick);
 
-		while(!asc.advance()) {}
+		while(asc.advance()) {}
 
 		CHECK(asc.data() == SC_ASC);
 	}
@@ -93,7 +93,7 @@ TEST_CASE("heap")
 	{
 		sortvis::Sorter asc(*sc_ptr, sortvis::algorithms::heap);
 
-		while(!asc.advance()) {}
+		while(asc.advance()) {}
 
 		CHECK(asc.data() == SC_ASC);
 	}

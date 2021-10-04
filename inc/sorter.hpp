@@ -69,16 +69,16 @@ public:
 	/**
 	 * @brief advances the SorterAlgorithm by one step if not finished
 	 *
-	 * @return hasFinished()
+	 * @return !hasFinished()
 	 */
 	bool advance()
 	{
 		if(!hasFinished())
 		{
 			++it;
-			return hasFinished();
+			return !hasFinished();
 		}
-		return true;
+		return false;
 	}
 
 	/**
@@ -166,21 +166,22 @@ public:
 		return allFinished;
 	}
 
-	// TODO change return of function from allHaveFinished to !allHaveFinished (and other functions?)
+	// TODO change return of functions from allHaveFinished to !allHaveFinished?
 
 	/**
 	 * @brief advance all sorters by one step
 	 *
-	 * @return allHaveFinished()
+	 * @return !allHaveFinished()
 	 */
 	bool advance()
 	{
-		allFinished = true;
+		bool notFinished = false;
 		for(sortvis::Sorter& sorter : sorters)
 		{
-			allFinished &= sorter.advance();
+			notFinished |= sorter.advance();
 		}
-		return allHaveFinished();
+		allFinished = !notFinished;
+		return !allHaveFinished();
 	}
 
 	/**

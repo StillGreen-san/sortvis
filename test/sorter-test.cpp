@@ -22,7 +22,7 @@ cppcoro::generator<const int> ChangedStateGen(std::shared_ptr<sortvis::SortableC
 	co_yield sortvis::algorithms::INIT_MAGIC_VALUE;
 }
 
-cppcoro::generator<const int> ValidGen(std::shared_ptr<sortvis::SortableCollection> data)
+cppcoro::generator<const int> ValidGen(std::shared_ptr<sortvis::SortableCollection>)
 {
 	co_yield sortvis::algorithms::INIT_MAGIC_VALUE;
 }
@@ -48,6 +48,55 @@ TEST_CASE("Sorter::Sorter")
 
 	SECTION("ValidGen")
 	{
-		REQUIRE_NOTHROW(sortvis::Sorter(sortables, ValidGen));
+		std::unique_ptr<sortvis::Sorter> sorter;
+
+		REQUIRE_NOTHROW(sorter = std::make_unique<sortvis::Sorter>(sortables, sortvis::algorithms::bubble));
+
+		CHECK_FALSE(sorter->hasFinished());
+		CHECK(std::strcmp(sorter->name(), "Bubble Sort") == 0);
+		CHECK(sorter->data() == sortables);
 	}
 }
+
+cppcoro::generator<const int> AdvanceGen(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	co_yield sortvis::algorithms::INIT_MAGIC_VALUE;
+
+	data->swap(0, 1);
+	co_yield sortvis::algorithms::SWAP_MAGIC_VALUE;
+
+	data->swap(2, 3);
+	co_yield sortvis::algorithms::SWAP_MAGIC_VALUE;
+}
+
+// TODO add operator[] to collections
+
+TEST_CASE("Sorter::advance")
+{
+	sortvis::SortableCollection sortables({1, 5, 3, 2, 6, 4});
+
+	sortvis::Sorter sorter(sortables, AdvanceGen);
+
+	CHECK(sorter.advance());
+
+	REQUIRE(sorter.data().begin()[0] == sortables.begin()[1]);
+	REQUIRE(sorter.data().begin()[1] == sortables.begin()[0]);
+
+	CHECK(sorter.advance());
+
+	REQUIRE(sorter.data().begin()[2] == sortables.begin()[3]);
+	REQUIRE(sorter.data().begin()[3] == sortables.begin()[2]);
+
+	CHECK_FALSE(sorter.advance());
+	CHECK_FALSE(sorter.advance());
+}
+
+// TEST_CASE("Sorter::reset")
+// {
+// 	sortvis::SortableCollection sortablesA({3, 1, 2, 4, 5, 6});
+// 	sortvis::SortableCollection sortablesB({1, 5, 3, 2, 6, 4});
+
+// 	sortvis::Sorter sorter(sortablesA, sortvis::algorithms::bubble);
+
+// 	// CHECK_FALSE(sorter.reset());
+// }
