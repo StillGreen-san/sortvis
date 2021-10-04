@@ -53,7 +53,7 @@ TEST_CASE("Sorter::Sorter")
 		REQUIRE_NOTHROW(sorter = std::make_unique<sortvis::Sorter>(sortables, sortvis::algorithms::bubble));
 
 		CHECK_FALSE(sorter->hasFinished());
-		CHECK(std::strcmp(sorter->name(), "Bubble Sort") == 0);
+		CHECK(sorter->name() == std::string("Bubble Sort"));
 		CHECK(sorter->data() == sortables);
 	}
 }
@@ -109,7 +109,7 @@ TEST_CASE("SorterCollection::SorterCollection(size_t, {}")
 {
 	sortvis::SorterCollection sorters(6, {sortvis::algorithms::bubble, sortvis::algorithms::quick});
 
-	CHECK(std::strcmp(sorters[0].name(), sorters[1].name()) != 0);
+	CHECK(sorters[0].name() != std::string(sorters[1].name()));
 
 	CHECK(sorters[0].data() == sorters[1].data());
 
@@ -122,7 +122,7 @@ TEST_CASE("SorterCollection::SorterCollection({}, {}")
 
 	sortvis::SorterCollection sorters(sortables, {sortvis::algorithms::bubble, sortvis::algorithms::quick});
 
-	CHECK(std::strcmp(sorters[0].name(), sorters[1].name()) != 0);
+	CHECK(sorters[0].name() != std::string(sorters[1].name()));
 
 	CHECK(sorters[0].data() == sorters[1].data());
 
