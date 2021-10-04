@@ -104,3 +104,71 @@ TEST_CASE("Sorter::reset")
 
 	CHECK_FALSE(sorter.hasFinished());
 }
+
+TEST_CASE("SorterCollection::SorterCollection(size_t, {}")
+{
+	sortvis::SorterCollection sorters(6, {sortvis::algorithms::bubble, sortvis::algorithms::quick});
+
+	CHECK(std::strcmp(sorters[0].name(), sorters[1].name()) != 0);
+
+	CHECK(sorters[0].data() == sorters[1].data());
+
+	CHECK(sorters[0].data().size() == sorters[1].data().size());
+}
+
+TEST_CASE("SorterCollection::SorterCollection({}, {}")
+{
+	sortvis::SortableCollection sortables({1, 2, 3, 4, 5, 6});
+
+	sortvis::SorterCollection sorters(sortables, {sortvis::algorithms::bubble, sortvis::algorithms::quick});
+
+	CHECK(std::strcmp(sorters[0].name(), sorters[1].name()) != 0);
+
+	CHECK(sorters[0].data() == sorters[1].data());
+
+	CHECK(sorters[0].data() == sortables);
+}
+
+cppcoro::generator<const int> Advance1Gen(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	co_yield sortvis::algorithms::INIT_MAGIC_VALUE;
+}
+cppcoro::generator<const int> Advance2Gen(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	co_yield sortvis::algorithms::INIT_MAGIC_VALUE;
+	co_yield sortvis::algorithms::SWAP_MAGIC_VALUE;
+}
+cppcoro::generator<const int> Advance3Gen(std::shared_ptr<sortvis::SortableCollection> data)
+{
+	co_yield sortvis::algorithms::INIT_MAGIC_VALUE;
+	co_yield sortvis::algorithms::SWAP_MAGIC_VALUE;
+	co_yield sortvis::algorithms::SWAP_MAGIC_VALUE;
+}
+
+TEST_CASE("SorterCollection::advance")
+{
+	sortvis::SortableCollection sortables({1, 5, 3, 2, 6, 4});
+
+	sortvis::SorterCollection sorters(sortables, {Advance1Gen, Advance3Gen, Advance2Gen});
+
+	REQUIRE(sorters.advance());
+	REQUIRE(sorters.advance());
+	REQUIRE_FALSE(sorters.advance());
+}
+
+TEST_CASE("SorterCollection::reset")
+{
+	sortvis::SortableCollection sortablesA({3, 1, 2, 4, 5, 6});
+	sortvis::SortableCollection sortablesB({1, 5, 3, 2, 6, 4});
+
+	sortvis::SorterCollection sorters(sortablesA, {ValidGen, ValidGen});
+
+	while(sorters.advance()) {}
+
+	CHECK_FALSE(sorters.reset(sortablesB));
+
+	CHECK(sorters[0].data() == sortablesB);
+	CHECK(sorters[1].data() == sortablesB);
+
+	CHECK_FALSE(sorters.allHaveFinished());
+}

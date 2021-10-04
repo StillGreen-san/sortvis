@@ -138,7 +138,7 @@ private:
 
 public:
 	/**
-	 * @brief Construct a new Sorter Collection object
+	 * @brief Construct a new Sorter Collection object with n randomized elements
 	 *
 	 * @param elements the number of elements to generate for the Sorters
 	 * @param algorithms a list of SorterAlgorithms for the Sorters to use
