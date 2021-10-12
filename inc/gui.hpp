@@ -95,19 +95,19 @@ public:
 		windowSize = ImGui::GetMainViewport()->Size;
 
 		const size_t sorterCount = sorters.size();
-		ImVec2 smallestAspectDeviation{99, 99};
+		float smallestAspectDeviation = 99;
 
 		for(size_t cols = 1; cols <= sorterCount; ++cols)
 		{
 			size_t rows = (sorterCount + 1) / cols;
 			if(rows * cols >= sorterCount)
 			{
-				ImVec2 aspectRatio{1.0f, (windowSize.y / cols) / (windowSize.x / rows)};
-				ImVec2 aspectDeviation{0.f, std::abs(aspectRatio.y - desiredYRatio)};
-				if(aspectDeviation.y < smallestAspectDeviation.y)
+				float aspectRatio = (windowSize.y / rows) / (windowSize.x / cols);
+				float aspectDeviation = std::abs(aspectRatio - desiredYRatio);
+				if(aspectDeviation < smallestAspectDeviation)
 				{
 					smallestAspectDeviation = aspectDeviation;
-					sortersPerLine = (int)rows;
+					sortersPerLine = (int)cols;
 				}
 			}
 		}
@@ -228,8 +228,8 @@ void renderSorters(sortvis::GUIData& data)
 	ImGui::SetNextWindowSize(ImVec2(data.windowSize.x, data.windowSize.y - data.controlSize.y));
 	ImGui::Begin("Sorter Window", nullptr, sortvis::flags::SORTER);
 
-	const ImVec2 plotSize((data.windowSize.x / data.sortersPerLine) - 10,
-	    ((data.windowSize.y - data.controlSize.y) / (data.sorters.size() / data.sortersPerLine)) - 9);
+	const ImVec2 plotSize(((data.windowSize.x - 14) / data.sortersPerLine),
+	    (((data.windowSize.y - 14) - data.controlSize.y) / (data.sorters.size() / data.sortersPerLine)));
 
 	int sorterLineNumber = 0;
 	for(const sortvis::Sorter& sorter : data.sorters)
