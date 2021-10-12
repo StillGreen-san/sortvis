@@ -34,6 +34,8 @@ constexpr auto DELAY = ImGuiSliderFlags_::ImGuiSliderFlags_Logarithmic;
 } // namespace flags
 
 constexpr unsigned FRAMERATE = 30;
+constexpr float desiredXRatio = 1.0000f;
+constexpr float desiredYRatio = 0.5625f;
 
 /**
  * @brief class containing data used in gui, call update before drawing a frame
@@ -43,6 +45,7 @@ class GUIData
 {
 public:
 	int elements = 32;
+	int sortersPerLine = 3;
 	float advanceDelta = 0;
 	float advanceDelay = 0.2f;
 	bool autoReset = false;
@@ -90,6 +93,24 @@ public:
 		}
 
 		windowSize = ImGui::GetMainViewport()->Size;
+
+		const size_t sorterCount = sorters.size();
+		ImVec2 smallestAspectDeviation{99, 99};
+
+		for(size_t cols = 1; cols <= sorterCount; ++cols)
+		{
+			size_t rows = (sorterCount + 1) / cols;
+			if(rows * cols >= sorterCount)
+			{
+				ImVec2 aspectRatio{1.0f, (windowSize.y / cols) / (windowSize.x / rows)};
+				ImVec2 aspectDeviation{0.f, std::abs(aspectRatio.y - desiredYRatio)};
+				if(aspectDeviation.y < smallestAspectDeviation.y)
+				{
+					smallestAspectDeviation = aspectDeviation;
+					sortersPerLine = (int)rows;
+				}
+			}
+		}
 	}
 };
 
@@ -146,6 +167,8 @@ constexpr auto noneGetter = genericGetter<sortvis::Sortable::AccessState::None, 
  * @brief renders the settings area
  *
  * @param data
+ *
+ * @todo handle imgui sizing bug for slider
  */
 void renderSettings(sortvis::GUIData& data)
 {
@@ -205,9 +228,10 @@ void renderSorters(sortvis::GUIData& data)
 	ImGui::SetNextWindowSize(ImVec2(data.windowSize.x, data.windowSize.y - data.controlSize.y));
 	ImGui::Begin("Sorter Window", nullptr, sortvis::flags::SORTER);
 
-	const ImVec2 plotSize((data.windowSize.x / 3) - 10, ((data.windowSize.y - data.controlSize.y) / 2) - 9);
+	const ImVec2 plotSize((data.windowSize.x / data.sortersPerLine) - 10,
+	    ((data.windowSize.y - data.controlSize.y) / (data.sorters.size() / data.sortersPerLine)) - 9);
 
-	int sorterNumber = 0;
+	int sorterLineNumber = 0;
 	for(const sortvis::Sorter& sorter : data.sorters)
 	{
 		if(ImPlot::BeginPlot(sorter.name(), "index", "value", plotSize, sortvis::flags::PLOT, sortvis::flags::XAXIS,
@@ -225,9 +249,13 @@ void renderSorters(sortvis::GUIData& data)
 
 			ImPlot::EndPlot();
 		}
-		if(++sorterNumber != 3)
+		if(++sorterLineNumber != data.sortersPerLine)
 		{
 			ImGui::SameLine();
+		}
+		else
+		{
+			sorterLineNumber = 0;
 		}
 	}
 
