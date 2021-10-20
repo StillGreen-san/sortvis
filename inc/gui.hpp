@@ -38,6 +38,19 @@ constexpr float desiredXRatio = 1.0000f;
 constexpr float desiredYRatio = 0.5625f;
 
 /**
+ * @brief clears least significant bit to make unsigned number even
+ *
+ * @tparam T std::unsigned_integral
+ * @param n number of T
+ * @return T even n
+ */
+template<std::unsigned_integral T>
+T makeEven(T n)
+{
+	return n & ~1;
+}
+
+/**
  * @brief class containing data used in gui, call update before drawing a frame
  *
  */
@@ -45,7 +58,8 @@ class GUIData
 {
 public:
 	int elements = 32;
-	int sortersPerLine = 3;
+	int sortersPerRow = 3;
+	int sortersPerCol = 2;
 	float advanceDelta = 0;
 	float advanceDelay = 0.2f;
 	bool autoReset = false;
@@ -99,7 +113,7 @@ public:
 
 		for(size_t cols = 1; cols <= sorterCount; ++cols)
 		{
-			size_t rows = (sorterCount + 1) / cols;
+			size_t rows = makeEven(sorterCount) / cols;
 			if(rows * cols >= sorterCount)
 			{
 				float aspectRatio = (windowSize.y / rows) / (windowSize.x / cols);
@@ -107,7 +121,8 @@ public:
 				if(aspectDeviation < smallestAspectDeviation)
 				{
 					smallestAspectDeviation = aspectDeviation;
-					sortersPerLine = (int)cols;
+					sortersPerRow = (int)cols;
+					sortersPerCol = (int)rows;
 				}
 			}
 		}
@@ -217,8 +232,14 @@ void plotBars(const sortvis::Sorter& sorter, const sortvis::NumberedString& labe
 	    static_cast<int>(sorter.data().size()), 1.0);
 }
 
+constexpr int OUTER_BORDER_MARGIN = 14;
+constexpr int INNER_X_BORDER_MARGIN = 8;
+constexpr int INNER_Y_BORDER_MARGIN = 4;
+
 /**
  * @brief renders the sorters area
+ *
+ * @todo better handle small window sizes
  *
  * @param data
  */
@@ -228,8 +249,12 @@ void renderSorters(sortvis::GUIData& data)
 	ImGui::SetNextWindowSize(ImVec2(data.windowSize.x, data.windowSize.y - data.controlSize.y));
 	ImGui::Begin("Sorter Window", nullptr, sortvis::flags::SORTER);
 
-	const ImVec2 plotSize(((data.windowSize.x - 14) / data.sortersPerLine),
-	    (((data.windowSize.y - 14) - data.controlSize.y) / (data.sorters.size() / data.sortersPerLine)));
+	const ImVec2 plotSize(
+	    ((data.windowSize.x - OUTER_BORDER_MARGIN) - ((data.sortersPerRow - 1) * INNER_X_BORDER_MARGIN)) /
+	        data.sortersPerRow,
+	    (((data.windowSize.y - OUTER_BORDER_MARGIN) - ((data.sortersPerCol - 1) * INNER_Y_BORDER_MARGIN)) -
+	        data.controlSize.y) /
+	        data.sortersPerCol);
 
 	int sorterLineNumber = 0;
 	for(const sortvis::Sorter& sorter : data.sorters)
@@ -249,7 +274,7 @@ void renderSorters(sortvis::GUIData& data)
 
 			ImPlot::EndPlot();
 		}
-		if(++sorterLineNumber != data.sortersPerLine)
+		if(++sorterLineNumber != data.sortersPerRow)
 		{
 			ImGui::SameLine();
 		}

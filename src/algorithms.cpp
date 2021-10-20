@@ -252,7 +252,7 @@ cppcoro::generator<const int> insertion(std::shared_ptr<sortvis::SortableCollect
 			if(!greater)
 				break;
 
-			data->swap(j - 1, j);
+			data->swap(j - 1, j); // TODO optimize swaps (compare until found not swap till found)
 			co_yield SWAP_MAGIC_VALUE;
 			data->state(sortvis::Sortable::AccessState::None, j - 1, j);
 		}
