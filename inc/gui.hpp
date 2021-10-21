@@ -182,8 +182,6 @@ constexpr auto noneGetter = genericGetter<sortvis::Sortable::AccessState::None, 
  * @brief renders the settings area
  *
  * @param data
- *
- * @todo handle imgui sizing bug for slider
  */
 void renderSettings(sortvis::GUIData& data)
 {
@@ -192,14 +190,6 @@ void renderSettings(sortvis::GUIData& data)
 
 	ImGui::Begin("Control Window", nullptr, sortvis::flags::SETTINGS);
 
-	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
-	ImGui::SliderFloat("advance delay", &data.advanceDelay, 0.004f, 1.0f, "%.3f", sortvis::flags::DELAY);
-
-	ImGui::SameLine();
-	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
-	ImGui::SliderInt("elements", &data.elements, 8, 128);
-
-	ImGui::SameLine();
 	if(ImGui::Button("reset sorters"))
 	{
 		data.sortables = sortvis::SortableCollection(data.elements);
@@ -209,6 +199,16 @@ void renderSettings(sortvis::GUIData& data)
 
 	ImGui::SameLine();
 	ImGui::Checkbox("auto reset", &data.autoReset);
+
+	const float sliderWidth = (ImGui::GetWindowWidth() - 386) / 2;
+
+	ImGui::SameLine();
+	ImGui::PushItemWidth(sliderWidth);
+	ImGui::SliderFloat("advance delay", &data.advanceDelay, 0.004f, 1.0f, "%.3f", sortvis::flags::DELAY);
+
+	ImGui::SameLine();
+	ImGui::PushItemWidth(sliderWidth);
+	ImGui::SliderInt("elements", &data.elements, 8, 128);
 
 	data.controlSize = ImGui::GetWindowSize();
 
