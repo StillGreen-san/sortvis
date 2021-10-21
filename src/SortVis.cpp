@@ -1,6 +1,6 @@
 #include "gui.hpp"
 
-#include "imgui-SFML.h"
+#include <imgui-SFML.h>
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>

@@ -2,7 +2,7 @@
 
 #undef IMGUI_USE_WCHAR32 // fix for redef in imconfig
 
-#include "imgui.h"
+#include <imgui.h>
 
 #include <SFML/System/Clock.hpp>
 
@@ -84,6 +84,17 @@ public:
 
 public:
 	/**
+	 * @brief resize to 'elements' and randomize 'sortables'
+	 *
+	 */
+	void resetSorters()
+	{
+		sortables = sortvis::SortableCollection(elements);
+		sortables.randomize();
+		sorters.reset(sortables);
+	}
+
+	/**
 	 * @brief updates timing and advances/resets sorters
 	 *
 	 */
@@ -101,8 +112,7 @@ public:
 			}
 			else if(autoReset)
 			{
-				sortables.randomize();
-				sorters.reset(sortables);
+				resetSorters();
 			}
 		}
 
@@ -192,9 +202,7 @@ void renderSettings(sortvis::GUIData& data)
 
 	if(ImGui::Button("reset sorters"))
 	{
-		data.sortables = sortvis::SortableCollection(data.elements);
-		data.sortables.randomize();
-		data.sorters.reset(data.sortables);
+		data.resetSorters();
 	}
 
 	ImGui::SameLine();
