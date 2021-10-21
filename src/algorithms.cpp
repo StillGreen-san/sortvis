@@ -1,5 +1,7 @@
 #include "sorter.hpp"
 
+#include <array>
+
 namespace sortvis::algorithms
 {
 cppcoro::generator<const int> bubble(std::shared_ptr<sortvis::SortableCollection> data)
@@ -74,12 +76,9 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 		data->state(sortvis::Sortable::AccessState::None, pivot, end);
 		data->state(sortvis::Sortable::SortState::Full, pivot);
 
-		bool pushed = false;
-
 		if(pivot > 0 && pivot - 1 > start)
 		{
 			stack.push(std::make_pair(start, pivot - 1));
-			pushed = true;
 		}
 		else if(start != pivot)
 		{
@@ -89,7 +88,6 @@ cppcoro::generator<const int> quick(std::shared_ptr<sortvis::SortableCollection>
 		if(pivot + 1 < end)
 		{
 			stack.push(std::make_pair(pivot + 1, end));
-			pushed = true;
 		}
 		else if(end != pivot)
 		{
@@ -203,7 +201,7 @@ cppcoro::generator<const int> heap(std::shared_ptr<sortvis::SortableCollection> 
 
 cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection> data)
 {
-	constexpr size_t gaps[] = {701, 301, 132, 57, 23, 10, 4, 1};
+	const std::array<size_t, 8> gaps{701, 301, 132, 57, 23, 10, 4, 1};
 
 	const size_t len = data->size();
 
@@ -220,7 +218,9 @@ cppcoro::generator<const int> shell(std::shared_ptr<sortvis::SortableCollection>
 				data->state(sortvis::Sortable::AccessState::None, j - gap, j);
 
 				if(!greater)
+				{
 					break;
+				}
 
 				data->swap(j - gap, j);
 				co_yield SWAP_MAGIC_VALUE;
@@ -250,7 +250,9 @@ cppcoro::generator<const int> insertion(std::shared_ptr<sortvis::SortableCollect
 			data->state(sortvis::Sortable::AccessState::None, j - 1, j);
 
 			if(!greater)
+			{
 				break;
+			}
 
 			data->swap(j - 1, j);
 			co_yield SWAP_MAGIC_VALUE;
@@ -309,17 +311,29 @@ namespace sortvis
 const char* getAlgorithmName(SorterAlgorithm algorithm)
 {
 	if(algorithm == sortvis::algorithms::bubble)
+	{
 		return "Bubble Sort";
+	}
 	if(algorithm == sortvis::algorithms::heap)
+	{
 		return "Heap Sort";
+	}
 	if(algorithm == sortvis::algorithms::insertion)
+	{
 		return "Insertion Sort";
+	}
 	if(algorithm == sortvis::algorithms::selection)
+	{
 		return "Selection Sort";
+	}
 	if(algorithm == sortvis::algorithms::quick)
+	{
 		return "Quick Sort";
+	}
 	if(algorithm == sortvis::algorithms::shell)
+	{
 		return "Shell Sort";
+	}
 	return "UNKNOWN";
 }
 } // namespace sortvis

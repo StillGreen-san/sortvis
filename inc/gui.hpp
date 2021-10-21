@@ -34,6 +34,21 @@ constexpr auto DELAY = ImGuiSliderFlags_::ImGuiSliderFlags_Logarithmic;
 } // namespace flags
 
 constexpr unsigned FRAMERATE = 30;
+constexpr float desiredXRatio = 1.0000f;
+constexpr float desiredYRatio = 0.5625f;
+
+/**
+ * @brief clears least significant bit to make unsigned number even
+ *
+ * @tparam T std::unsigned_integral
+ * @param n number of T
+ * @return T even n
+ */
+template<std::unsigned_integral T>
+T makeEven(T n)
+{
+	return n & ~1;
+}
 
 /**
  * @brief class containing data used in gui, call update before drawing a frame
@@ -43,6 +58,8 @@ class GUIData
 {
 public:
 	int elements = 32;
+	int sortersPerRow = 3;
+	int sortersPerCol = 2;
 	float advanceDelta = 0;
 	float advanceDelay = 0.2f;
 	bool autoReset = false;
@@ -90,6 +107,25 @@ public:
 		}
 
 		windowSize = ImGui::GetMainViewport()->Size;
+
+		const size_t sorterCount = sorters.size();
+		float smallestAspectDeviation = 99;
+
+		for(size_t cols = 1; cols <= sorterCount; ++cols)
+		{
+			size_t rows = makeEven(sorterCount) / cols;
+			if(rows * cols >= sorterCount)
+			{
+				float aspectRatio = (windowSize.y / rows) / (windowSize.x / cols);
+				float aspectDeviation = std::abs(aspectRatio - desiredYRatio);
+				if(aspectDeviation < smallestAspectDeviation)
+				{
+					smallestAspectDeviation = aspectDeviation;
+					sortersPerRow = (int)cols;
+					sortersPerCol = (int)rows;
+				}
+			}
+		}
 	}
 };
 
@@ -154,14 +190,6 @@ void renderSettings(sortvis::GUIData& data)
 
 	ImGui::Begin("Control Window", nullptr, sortvis::flags::SETTINGS);
 
-	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
-	ImGui::SliderFloat("advance delay", &data.advanceDelay, 0.004f, 1.0f, "%.3f", sortvis::flags::DELAY);
-
-	ImGui::SameLine();
-	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.35f);
-	ImGui::SliderInt("elements", &data.elements, 8, 128);
-
-	ImGui::SameLine();
 	if(ImGui::Button("reset sorters"))
 	{
 		data.sortables = sortvis::SortableCollection(data.elements);
@@ -171,6 +199,16 @@ void renderSettings(sortvis::GUIData& data)
 
 	ImGui::SameLine();
 	ImGui::Checkbox("auto reset", &data.autoReset);
+
+	const float sliderWidth = (ImGui::GetWindowWidth() - 386) / 2;
+
+	ImGui::SameLine();
+	ImGui::PushItemWidth(sliderWidth);
+	ImGui::SliderFloat("advance delay", &data.advanceDelay, 0.004f, 1.0f, "%.3f", sortvis::flags::DELAY);
+
+	ImGui::SameLine();
+	ImGui::PushItemWidth(sliderWidth);
+	ImGui::SliderInt("elements", &data.elements, 8, 128);
 
 	data.controlSize = ImGui::GetWindowSize();
 
@@ -194,8 +232,14 @@ void plotBars(const sortvis::Sorter& sorter, const sortvis::NumberedString& labe
 	    static_cast<int>(sorter.data().size()), 1.0);
 }
 
+constexpr int OUTER_BORDER_MARGIN = 14;
+constexpr int INNER_X_BORDER_MARGIN = 8;
+constexpr int INNER_Y_BORDER_MARGIN = 4;
+
 /**
  * @brief renders the sorters area
+ *
+ * @todo better handle small window sizes
  *
  * @param data
  */
@@ -205,9 +249,14 @@ void renderSorters(sortvis::GUIData& data)
 	ImGui::SetNextWindowSize(ImVec2(data.windowSize.x, data.windowSize.y - data.controlSize.y));
 	ImGui::Begin("Sorter Window", nullptr, sortvis::flags::SORTER);
 
-	const ImVec2 plotSize((data.windowSize.x / 3) - 10, ((data.windowSize.y - data.controlSize.y) / 2) - 9);
+	const ImVec2 plotSize(
+	    ((data.windowSize.x - OUTER_BORDER_MARGIN) - ((data.sortersPerRow - 1) * INNER_X_BORDER_MARGIN)) /
+	        data.sortersPerRow,
+	    (((data.windowSize.y - OUTER_BORDER_MARGIN) - ((data.sortersPerCol - 1) * INNER_Y_BORDER_MARGIN)) -
+	        data.controlSize.y) /
+	        data.sortersPerCol);
 
-	int sorterNumber = 0;
+	int sorterLineNumber = 0;
 	for(const sortvis::Sorter& sorter : data.sorters)
 	{
 		if(ImPlot::BeginPlot(sorter.name(), "index", "value", plotSize, sortvis::flags::PLOT, sortvis::flags::XAXIS,
@@ -225,9 +274,13 @@ void renderSorters(sortvis::GUIData& data)
 
 			ImPlot::EndPlot();
 		}
-		if(++sorterNumber != 3)
+		if(++sorterLineNumber != data.sortersPerRow)
 		{
 			ImGui::SameLine();
+		}
+		else
+		{
+			sorterLineNumber = 0;
 		}
 	}
 

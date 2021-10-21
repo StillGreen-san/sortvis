@@ -232,5 +232,10 @@ public:
 	{
 		return sorters[idx];
 	}
+
+	[[nodiscard]] size_t size() const noexcept
+	{
+		return sorters.size();
+	}
 };
 } // namespace sortvis
