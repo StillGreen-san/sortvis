@@ -34,7 +34,6 @@ constexpr auto DELAY = ImGuiSliderFlags_::ImGuiSliderFlags_Logarithmic;
 } // namespace flags
 
 constexpr unsigned FRAMERATE = 30;
-constexpr float desiredXRatio = 1.0000f;
 constexpr float desiredYRatio = 0.5625f;
 
 /**
@@ -155,7 +154,6 @@ ImVec4 fromRGB(RGBcolor rgb) noexcept
 
 constexpr RGBcolor ROYAL_BLUE = 0x4169E1;
 constexpr RGBcolor FOREST_GREEN = 0x228B22;
-constexpr RGBcolor SPRING_GREEN = 0x00FF7F;
 constexpr RGBcolor GOLDEN_ROD = 0xDAA520;
 constexpr RGBcolor FIRE_BRICK = 0xB22222;
 
@@ -184,8 +182,6 @@ noexcept
 constexpr auto writeGetter = genericGetter<sortvis::Sortable::AccessState::Write>;
 constexpr auto readGetter = genericGetter<sortvis::Sortable::AccessState::Read>;
 constexpr auto fullGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Full>;
-constexpr auto partialGetter =
-    genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::Partial>;
 constexpr auto noneGetter = genericGetter<sortvis::Sortable::AccessState::None, sortvis::Sortable::SortState::None>;
 
 /**

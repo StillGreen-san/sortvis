@@ -106,10 +106,6 @@ size_t iLeftChild(size_t i)
 {
 	return (2 * i) + 1;
 }
-size_t iRightChild(size_t i)
-{
-	return (2 * i) + 2;
-}
 
 cppcoro::generator<const int> siftDown(std::shared_ptr<sortvis::SortableCollection> data, size_t start, size_t end)
 {
