@@ -63,6 +63,6 @@ int main()
 	}
 	catch(...)
 	{
-		std::cerr << "[UNKOWN_EXCEPTION] !" << std::endl;
+		std::cerr << "[UNKNOWN_EXCEPTION] !" << std::endl;
 	}
 }

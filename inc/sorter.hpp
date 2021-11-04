@@ -58,7 +58,7 @@ public:
 	~Sorter() = default;
 
 	/**
-	 * @brief returns wether the SorterAlgoritm has finished sorting the SortableCollection
+	 * @brief returns whether the SorterAlgorithm has finished sorting the SortableCollection
 	 *
 	 */
 	[[nodiscard]] bool hasFinished() const noexcept

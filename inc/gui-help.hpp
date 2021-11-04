@@ -22,7 +22,7 @@ public:
 	/**
 	 * @brief Construct a new Numbered String object
 	 *
-	 * @param str string befor number
+	 * @param str string before number
 	 */
 	NumberedString(const char* str)
 	{

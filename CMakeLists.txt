@@ -28,7 +28,6 @@ set( TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test )
 
 set( TARGET_MAIN ${PROJECT_NAME} )
 set( TARGET_TEST ${PROJECT_NAME}-test )
-set( TARGET_SFML sfmltrial )
 
 set( SOURCES_COMMON
 	${SRC_DIR}/algorithms.cpp
@@ -42,9 +41,6 @@ set( SOURCES_TEST
 	${TEST_DIR}/sortable-test.cpp
 	${TEST_DIR}/sorter-test.cpp
 	${TEST_DIR}/gui-test.cpp
-)
-set( SOURCES_SFML
-	${SRC_DIR}/${TARGET_SFML}.cpp
 )
 
 add_executable( ${TARGET_MAIN} ${SOURCES_MAIN} ${SOURCES_COMMON} )
