@@ -97,6 +97,12 @@ void renderSettings(sortvis::GUIData& data)
 
 	ImGui::Begin("Control Window", nullptr, flags::SETTINGS);
 
+	if(ImGui::Button("?"))
+	{
+		data.showAbout = true;
+	}
+
+	ImGui::SameLine();
 	if(ImGui::Button("reset sorters"))
 	{
 		data.resetSorters();
@@ -105,7 +111,7 @@ void renderSettings(sortvis::GUIData& data)
 	ImGui::SameLine();
 	ImGui::Checkbox("auto reset", &data.autoReset);
 
-	const float sliderWidth = (ImGui::GetWindowWidth() - 386) / 2;
+	const float sliderWidth = (ImGui::GetWindowWidth() - 409) / 2;
 
 	ImGui::SameLine();
 	ImGui::PushItemWidth(sliderWidth);
@@ -169,10 +175,58 @@ void renderSorters(sortvis::GUIData& data)
 
 	ImGui::End();
 }
+
+void addAboutRow(const char* name, const char* license, const char* link)
+{
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+	ImGui::TextUnformatted(name);
+	ImGui::TableNextColumn();
+	ImGui::TextUnformatted(license);
+	ImGui::TableNextColumn();
+	if(name == nullptr)
+	{
+		ImGui::TextUnformatted(link);
+	}
+	else if(ImGui::Selectable(link, false, ImGuiSelectableFlags_DontClosePopups))
+	{
+		ImGui::SetClipboardText(link);
+	}
+}
 } // namespace
 
 void sortvis::render(sortvis::GUIData& data)
 {
 	renderSettings(data);
 	renderSorters(data);
+
+	if(!data.showAbout)
+	{
+		return;
+	}
+
+	ImGui::OpenPopup("About");
+	if(ImGui::BeginPopupModal("About", &data.showAbout, ImGuiWindowFlags_NoResize))
+	{
+		ImGui::TextUnformatted("this program uses the following libraries:\n");
+
+		if(ImGui::BeginTable("AboutTableID", 3))
+		{
+			ImGui::TableSetupColumn(nullptr, ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn(nullptr, ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn(nullptr, ImGuiTableColumnFlags_WidthFixed);
+
+			addAboutRow("Dear IMGUI", "[MIT]", "https://github.com/ocornut/imgui");
+			addAboutRow("ImPlot", "[MIT]", "https://github.com/epezent/implot");
+			addAboutRow("SFML", "[ZLIB]", "https://github.com/SFML/SFML");
+			addAboutRow("ImGui-SFML", "[MIT]", "https://github.com/eliasdaler/imgui-sfml");
+			addAboutRow("CppCoro", "[MIT]", "https://github.com/lewissbaker/cppcoro");
+			addAboutRow(nullptr, nullptr, "for testing only:");
+			addAboutRow("Catch2", "[BSL]", "https://github.com/catchorg/Catch2");
+
+			ImGui::EndTable();
+		}
+
+		ImGui::EndPopup();
+	}
 }

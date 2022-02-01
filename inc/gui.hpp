@@ -42,6 +42,7 @@ public:
 	float advanceDelta = 0;
 	float advanceDelay = 0.2f;
 	bool autoReset = false;
+	bool showAbout = false;
 
 	ImVec2 windowSize;
 	ImVec2 controlSize;
