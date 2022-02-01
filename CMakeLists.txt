@@ -4,7 +4,7 @@ project( SortVis CXX )
 
 option( WARNINGS_AS_ERRORS "Treat compiler warnings as errors" ON )
 option( ENABLE_CPPCHECK "Enable static analysis with cppcheck" OFF )
-option( ENABLE_CLANG_TIDY "Enable static analysis with clang-tidy" ON )
+option( ENABLE_CLANG_TIDY "Enable static analysis with clang-tidy" OFF )
 option( ENABLE_INCLUDE_WHAT_YOU_USE "Enable static analysis with include-what-you-use" OFF )
 
 include( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerWarnings.cmake )
@@ -34,6 +34,7 @@ set( SOURCES_COMMON
 )
 set( SOURCES_MAIN
 	${SRC_DIR}/${TARGET_MAIN}.cpp
+	${SRC_DIR}/gui.cpp
 )
 set( SOURCES_TEST
 	${TEST_DIR}/${TARGET_TEST}.cpp
