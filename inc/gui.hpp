@@ -120,18 +120,9 @@ public:
 };
 
 /**
- * @brief renders the settings area
+ * @brief render gui (settings & sorters)
  *
- * @param data
+ * @param data gui data
  */
-void renderSettings(sortvis::GUIData& data);
-
-/**
- * @brief renders the sorters area
- *
- * @todo better handle small window sizes
- *
- * @param data
- */
-void renderSorters(sortvis::GUIData& data);
+void render(sortvis::GUIData& data);
 } // namespace sortvis

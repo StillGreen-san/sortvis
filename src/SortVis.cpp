@@ -42,8 +42,7 @@ int main()
 
 			ImGui::SFML::Update(window, data.deltaTime);
 
-			sortvis::renderSettings(data);
-			sortvis::renderSorters(data);
+			sortvis::render(data);
 
 			window.clear();
 			ImGui::SFML::Render(window);

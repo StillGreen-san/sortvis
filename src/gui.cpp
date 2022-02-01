@@ -84,9 +84,13 @@ void plotBars(const sortvis::Sorter& sorter, const sortvis::NumberedString& labe
 constexpr int OUTER_BORDER_MARGIN = 14;
 constexpr int INNER_X_BORDER_MARGIN = 8;
 constexpr int INNER_Y_BORDER_MARGIN = 4;
-} // namespace
 
-void sortvis::renderSettings(sortvis::GUIData& data)
+/**
+ * @brief renders the settings area
+ *
+ * @param data
+ */
+void renderSettings(sortvis::GUIData& data)
 {
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(data.windowSize.x, 0));
@@ -116,7 +120,14 @@ void sortvis::renderSettings(sortvis::GUIData& data)
 	ImGui::End();
 }
 
-void sortvis::renderSorters(sortvis::GUIData& data)
+/**
+ * @brief renders the sorters area
+ *
+ * @todo better handle small window sizes
+ *
+ * @param data
+ */
+void renderSorters(sortvis::GUIData& data)
 {
 	ImGui::SetNextWindowPos(ImVec2(0, data.controlSize.y));
 	ImGui::SetNextWindowSize(ImVec2(data.windowSize.x, data.windowSize.y - data.controlSize.y));
@@ -157,4 +168,11 @@ void sortvis::renderSorters(sortvis::GUIData& data)
 	}
 
 	ImGui::End();
+}
+} // namespace
+
+void sortvis::render(sortvis::GUIData& data)
+{
+	renderSettings(data);
+	renderSorters(data);
 }
