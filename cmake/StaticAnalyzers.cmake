@@ -1,5 +1,7 @@
 # based on https://github.com/lefticus/cpp_starter_project/
 
+option( ENABLE_INCLUDE_WHAT_YOU_USE "Enable static analysis with include-what-you-use" OFF )
+
 if( ENABLE_CPPCHECK )
 	find_program( CPPCHECK cppcheck )
 	if( CPPCHECK )

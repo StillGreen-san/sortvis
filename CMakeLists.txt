@@ -5,7 +5,6 @@ project( SortVis CXX )
 option( WARNINGS_AS_ERRORS "Treat compiler warnings as errors" ON )
 option( ENABLE_CPPCHECK "Enable static analysis with cppcheck" OFF )
 option( ENABLE_CLANG_TIDY "Enable static analysis with clang-tidy" OFF )
-option( ENABLE_INCLUDE_WHAT_YOU_USE "Enable static analysis with include-what-you-use" OFF )
 
 include( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerWarnings.cmake )
 include( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ProjectSettings.cmake )
@@ -22,7 +21,6 @@ find_package( implot CONFIG REQUIRED )
 find_package( Catch2 CONFIG REQUIRED )
 
 set( INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inc )
-# set( EXT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext )
 set( SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src )
 set( TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test )
 
@@ -44,13 +42,28 @@ set( SOURCES_TEST
 	${TEST_DIR}/gui-test.cpp
 )
 
-add_executable( ${TARGET_MAIN} ${SOURCES_MAIN} ${SOURCES_COMMON} )
+set( LIBS_COMMON
+	cppcoro
+)
+set( LIBS_MAIN
+	$<$<PLATFORM_ID:Windows>:sfml-main>
+	sfml-system
+	sfml-graphics
+	sfml-window
+	ImGui-SFML::ImGui-SFML
+	imgui::imgui
+	implot::implot
+)
+set( LIBS_TEST
+	Catch2::Catch2
+)
+
+add_executable( ${TARGET_MAIN} WIN32 ${SOURCES_COMMON} ${SOURCES_MAIN} )
 target_include_directories( ${TARGET_MAIN} PRIVATE ${INC_DIR} )
-# target_include_directories( ${TARGET_MAIN} SYSTEM PRIVATE ${EXT_DIR} )
-target_link_libraries( ${TARGET_MAIN} PRIVATE cppcoro sfml-system sfml-graphics sfml-window ImGui-SFML::ImGui-SFML imgui::imgui implot::implot )
+target_link_libraries( ${TARGET_MAIN} PRIVATE ${LIBS_COMMON} ${LIBS_MAIN} )
 target_compile_features( ${TARGET_MAIN} PRIVATE cxx_std_20 )
 
-add_executable( ${TARGET_TEST} ${SOURCES_TEST} ${SOURCES_COMMON} )
-target_include_directories( ${TARGET_TEST} SYSTEM PRIVATE ${INC_DIR} ${Catch2_INCLUDE_DIRS} )
-target_link_libraries( ${TARGET_TEST} PRIVATE cppcoro Catch2::Catch2 )
+add_executable( ${TARGET_TEST} ${SOURCES_COMMON} ${SOURCES_TEST} )
+target_include_directories( ${TARGET_TEST} SYSTEM PRIVATE ${INC_DIR} )
+target_link_libraries( ${TARGET_TEST} PRIVATE ${LIBS_COMMON} ${LIBS_TEST} )
 target_compile_features( ${TARGET_TEST} PRIVATE cxx_std_20 )
