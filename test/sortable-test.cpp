@@ -1,6 +1,6 @@
 #include "sortable.hpp"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 bool operator==(const std::vector<int>& vec, const std::initializer_list<int>& lst)
 {

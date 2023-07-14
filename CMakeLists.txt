@@ -18,7 +18,7 @@ find_package( SFML COMPONENTS system window graphics CONFIG REQUIRED )
 find_package( ImGui-SFML CONFIG REQUIRED )
 find_package( implot CONFIG REQUIRED )
 
-find_package( Catch2 CONFIG REQUIRED )
+find_package( Catch2 3 CONFIG REQUIRED )
 
 set( INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inc )
 set( SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src )
@@ -35,7 +35,6 @@ set( SOURCES_MAIN
 	${SRC_DIR}/gui.cpp
 )
 set( SOURCES_TEST
-	${TEST_DIR}/${TARGET_TEST}.cpp
 	${TEST_DIR}/sorting-test.cpp
 	${TEST_DIR}/sortable-test.cpp
 	${TEST_DIR}/sorter-test.cpp
@@ -55,7 +54,7 @@ set( LIBS_MAIN
 	implot::implot
 )
 set( LIBS_TEST
-	Catch2::Catch2
+	Catch2::Catch2WithMain
 )
 
 add_executable( ${TARGET_MAIN} WIN32 ${SOURCES_COMMON} ${SOURCES_MAIN} )

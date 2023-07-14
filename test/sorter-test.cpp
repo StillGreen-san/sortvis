@@ -1,6 +1,6 @@
 #include "sorter.hpp"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 cppcoro::generator<const int> EarlyFinishGen(std::shared_ptr<sortvis::SortableCollection> data)
 {
