@@ -8,8 +8,10 @@ namespace
  */
 namespace flags
 {
-constexpr auto PLOT = static_cast<ImPlotFlags_>(
-    ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMousePos | ImPlotFlags_NoHighlight | ImPlotFlags_NoMenus);
+constexpr auto PLOT =
+    static_cast<ImPlotFlags_>(ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus);
+constexpr auto LEGEND = static_cast<ImPlotLegendFlags_>(
+    ImPlotLegendFlags_NoHighlightAxis | ImPlotLegendFlags_NoHighlightItem | ImPlotLegendFlags_Horizontal);
 constexpr auto XAXIS = static_cast<ImPlotAxisFlags_>(
     ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoLabel);
 constexpr auto YAXIS = static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoLabel);
@@ -47,9 +49,8 @@ constexpr RGBcolor FIRE_BRICK = 0xB22222;
  * @return ImPlotPoint for bar if states match or {0,0}
  */
 template<auto STATE_A, auto STATE_B = STATE_A>
-requires sortvis::SortableState<decltype(STATE_A)> && sortvis::SortableState<decltype(STATE_B)> ImPlotPoint
-genericGetter(void* data, int idx)
-noexcept
+    requires sortvis::SortableState<decltype(STATE_A)> && sortvis::SortableState<decltype(STATE_B)>
+ImPlotPoint genericGetter(int idx, void* data) noexcept
 {
 	const auto& collection = *static_cast<sortvis::SortableCollection*>(data);
 	const auto& element = collection[idx];
@@ -73,7 +74,7 @@ constexpr auto noneGetter = genericGetter<sortvis::Sortable::AccessState::None, 
  * @param getter
  */
 void plotBars(const sortvis::Sorter& sorter, const sortvis::NumberedString& label, RGBcolor color,
-    ImPlotPoint (*getter)(void* data, int idx))
+    ImPlotPoint (*getter)(int idx, void* data))
 {
 	ImPlot::SetNextFillStyle(fromRGB(color));
 	ImPlot::PlotBarsG(label.data(), getter,
@@ -149,12 +150,12 @@ void renderSorters(sortvis::GUIData& data)
 	int sorterLineNumber = 0;
 	for(const sortvis::Sorter& sorter : data.sorters)
 	{
-		if(ImPlot::BeginPlot(sorter.name(), "index", "value", plotSize, flags::PLOT, flags::XAXIS, flags::YAXIS))
+		if(ImPlot::BeginPlot(sorter.name(), plotSize, flags::PLOT))
 		{
-			data.barLabels.update(sorter);
+			ImPlot::SetupLegend(ImPlotLocation_::ImPlotLocation_South, flags::LEGEND);
+			ImPlot::SetupAxes("index", "value", flags::XAXIS, flags::YAXIS);
 
-			ImPlot::SetLegendLocation(
-			    ImPlotLocation_::ImPlotLocation_South, ImPlotOrientation_::ImPlotOrientation_Horizontal, true);
+			data.barLabels.update(sorter);
 
 			plotBars(sorter, data.barLabels.write(), FIRE_BRICK, writeGetter);
 			plotBars(sorter, data.barLabels.read(), GOLDEN_ROD, readGetter);
