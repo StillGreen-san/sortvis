@@ -10,11 +10,12 @@ namespace flags
 {
 constexpr auto PLOT =
     static_cast<ImPlotFlags_>(ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus);
-constexpr auto LEGEND = static_cast<ImPlotLegendFlags_>(
-    ImPlotLegendFlags_NoHighlightAxis | ImPlotLegendFlags_NoHighlightItem | ImPlotLegendFlags_Horizontal);
-constexpr auto XAXIS = static_cast<ImPlotAxisFlags_>(
-    ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoLabel);
-constexpr auto YAXIS = static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoLabel);
+constexpr auto LEGEND =
+    static_cast<ImPlotLegendFlags_>(ImPlotLegendFlags_NoHighlightAxis | ImPlotLegendFlags_NoHighlightItem |
+                                    ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+constexpr auto YAXIS =
+    static_cast<ImPlotAxisFlags_>(ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoLabel | ImPlotAxisFlags_NoHighlight);
+constexpr auto XAXIS = static_cast<ImPlotAxisFlags_>(YAXIS | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks);
 constexpr auto SORTER = static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);
 constexpr auto SETTINGS = static_cast<ImGuiWindowFlags_>(ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 constexpr auto DELAY = ImGuiSliderFlags_::ImGuiSliderFlags_Logarithmic;
